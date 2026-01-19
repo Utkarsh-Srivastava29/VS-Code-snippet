@@ -1,0 +1,127 @@
+//Total space Complexity-->O(n)
+//This works for any associative operation: min, max, sum, GCD, XOR, etc.
+#include<bits/stdc++.h>
+using namespace std;
+#define int long long
+
+const int N=200005;
+int sz[N];
+int depth[N];
+int parent[N];
+vector<int> g[N];
+
+int pos[N];
+int chain[N];
+int head[N];
+int curr_chain=0;
+int curr_pos_in_flatenned_tree=0;
+//the following is for finding the heavy child
+void dfs(int src,int par,int dep){
+    parent[src]=par;//jb hamein depth[head[nodeA]] and depth[head[nodeB]] ke hisab se parent ko chain switch krna hoga u=parent[head[u]];
+    depth[src]=dep;//jb depth ke hisab se swap krna hoga 
+    sz[src]=1;  //current size of the subtree kya hai
+    for(auto &child:g[src]){
+        if(child!=par){
+            dfs(child,src,dep+1);
+            sz[src]+=sz[child];
+        }
+    }
+}
+
+//ye hai chain decide krne ke liye 
+void decompose(int src,int par,int chain_head){
+    //do  chain tb same nahin hota hai when they have different heads
+    chain[src]=curr_chain;//kis chain mein taaki us chain ke head se leke uske tak poori query kr lein
+    head[src]=chain_head;
+
+    int heavy=-1;//heavy child
+    
+    //let us make only one pos array in the segtree
+    pos[src]=curr_pos_in_flatenned_tree++;
+    
+    //ye hai for finding the heavy child
+    for(auto &child:g[src]){
+        if(child==par) continue;
+        if(heavy==-1 or sz[child]>sz[heavy]) heavy=child;
+    }
+    
+    //ye hai for the purpose for the leaf
+    //agr leaf nahin hui to heavy==-1
+    if(heavy!=-1){
+        //jo curr_chain wo same hi rhegi in the following one
+        decompose(heavy,src,chain_head);//decompose with the same id
+    }
+    
+    for(auto &child:g[src]){
+        if(child!=par and child!=heavy){
+            curr_chain++;//is current chain ko update krne ke baad wo aage badh jayega
+            decompose(child,src,child);
+        }
+    }
+}
+
+//pehle jiska head jyada neeche hai usko humlog upar le jayenge and 
+//jb dono nodes same segment mein aa gya na then that is called the query
+//between the segment of u and v
+
+//logn hain segments aur har query hamara hamehsha hi at max logn jumps lega 
+//and therefore we will have lon per segment and the total complexity will be 
+//logn x logn
+
+//Each segment try takes O(logn) time and t O(log^2n)per path_query
+
+
+//hamein lca nikalni ki zaroorat nahin pdti hai kyunki wo as a byproduct calculate ho jaata hai in case of hld
+int path_query(int u,int v){
+    int res = -1e18;
+    //O(logn)
+    while(chain[u] != chain[v]){
+        if(depth[head[u]] < depth[head[v]])
+            swap(u, v);
+
+
+        //agr ye neeche waala agr jyada deep jaa rha hai then we can go with that
+        //res=max(res,seg.query(pos[head[u]]+1,pos[u]));//if edge query
+        //and store the edge values in the position of child node
+        res=max(res,seg.query(pos[head[u]],pos[u]));//O(logn)
+
+        u = parent[head[u]];
+    }
+    if(depth[u] < depth[v])
+        swap(u, v);
+    //jiski depth kam hai wahan se leke jiska depth jyada hai
+    res = max(res,seg.query(pos[v], pos[u]));
+
+    return res;
+}
+
+//point update
+void update_point(int u,int val){
+    seg.update(pos[u],val);
+}
+
+void path_update(int u,int v,int val){
+    while(chain[u]!=chain[v]){
+        if(depth[head[u]]<depth[head[v]]) swap(u,v);
+        seg.update(pos[head[u]],pos[u],val);
+        u=parent[head[u]];
+    }
+    if(depth[u]>depth[v]) swap(u,v);
+    seg.update(pos[u],pos[v],val);
+}
+
+int32_t main(){
+    int n;
+    cin>>n;
+    for(int i=0;i<n-1;i++){
+        int x,y;
+        cin>>x>>y;
+        x--;
+        y--;
+        g[x].push_back(y);
+        g[y].push_back(x);
+    }
+
+    dfs(0,-1,0);
+    decompose(0,-1,0);
+}
