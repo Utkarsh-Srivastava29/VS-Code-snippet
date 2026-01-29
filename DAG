@@ -36,7 +36,23 @@ Longest path in a DAG finds the critical path or maximum reward, but with cycles
 
 
 
-For general graphs directed or undirected with cycles we need to use BellmenFord-DP.
+For general graphs directed or undirected with cycles we need to use BellmenFord-DP with negative edges.
+
+DP State
+dp[u] = maximum number of cities on any path from 1 to u
+dp[1] = 1        // starting city counts
+dp[others] = -∞
+dp[v] = max(dp[v], dp[u] + 1)
+If dp[n] == -∞ → IMPOSSIBLE
+Else → dp[n] is the maximum cities
+Longest Flight Route = longest path on a DAG by counting nodes, solved with topo + DP.
+
+
+Longest Flight Route = topo order + dp + parent tracking + unreachable check..Ye unreachability zaroor check kro during the contest.
+
+
+
+
 
 
 ⁡
