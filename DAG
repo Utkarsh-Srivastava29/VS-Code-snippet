@@ -50,11 +50,109 @@ Longest Flight Route = longest path on a DAG by counting nodes, solved with topo
 
 Longest Flight Route = topo order + dp + parent tracking + unreachable check..Ye unreachability zaroor check kro during the contest.
 
+DAG mein source se destination tak distinct paths count karne ke liye DP use karo. dp[v] ko source se v tak pahunchne ke total ways ke roop mein define karo.dp[source]=1, baaki sab 0.
+Nodes ko topological order mein process karo aur har edge (u→v) ke liye dp[v] += dp[u] karo , kyunki u tak aane wale har path v tak extend ho sakta hai.Cycles nahi hone ki wajah se har path ek baar hi count hota hai. Final answer dp[destination] hota hai(1e9+7).
+This is different from shortest or longest path, where you take min or max.Counting problems use addition.
+
+This runs in O(E+V) with a space time complexity of O(V).
+
+Multiple sources → sab sources ke liye dp[source] = 1
+Multiple destinations → DP ke baad sum(dp[destination])
+
+Paths through node u = forward[u] × backward[u],Longest path (node count) → dp[source] = 1,Longest path (edge count) → dp[source] = 0
+
+Longest path + positive cycle on path ⇒ answer = infinite (use Bellman–Ford + reachability).agr reverse graph mein bhi wo cycle aati hai tabi reachable hogi.
+
+
+Longest path + possible cycles ⇒ negate weights + Bellman–Ford + check reachable positive cycles.
+
+Tree DP = root + DFS = natural DP order and Relaxation = better path mila → update dist
+
+This term comes from the idea of tightening or loosening constraints. You are finding the tightest (shortest) distance estimate
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const long long INF = 1e18;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, m, src, dst, k;
+    cin >> n >> m >> src >> dst >> k;
+    src--; dst--;
+
+    vector<vector<pair<int,int>>> g(n);
+    vector<int> indeg(n, 0);
+
+    for (int i = 0; i < m; i++) {
+        int u, v, w;
+        cin >> u >> v >> w;
+        u--; v--;
+        g[u].push_back({v, w});
+        indeg[v]++;
+    }
+
+    // ---------- Topological Sort (Kahn) ----------
+    queue<int> q;
+    for (int i = 0; i < n; i++)
+        if (indeg[i] == 0)
+            q.push(i);
+
+    vector<int> topo;
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        topo.push_back(u);
+        for (auto [v, w] : g[u]) {
+            if (--indeg[v] == 0)
+                q.push(v);
+        }
+    }
+
+    // ---------- DP ----------
+    vector<vector<long long>> dp(n, vector<long long>(k + 2, INF));
+    dp[src][0] = 0;
+
+    for (int u : topo) {
+        for (int x = 0; x <= k; x++) {
+            if (dp[u][x] == INF) continue;
+            for (auto [v, w] : g[u]) {
+                dp[v][x + 1] = min(dp[v][x + 1], dp[u][x] + w);
+            }
+        }
+    }
+
+    // ---------- Answer ----------
+    long long ans = INF;
+    for (int x = 0; x <= k + 1; x++)
+        ans = min(ans, dp[dst][x]);
+
+    if (ans == INF)
+        cout << -1 << "\n";
+    else
+        cout << ans << "\n";
+
+    return 0;
+}
 
 
 
 
+Outer loop = topo order, middle = constraint layers, inner = edge relaxation.for each node the all the dp states have been computed earlier in the order for the above question so using the inner loop.
 
+
+
+When to use DP on DAGS--->1. The graph is a DAG (explicitly or implicitly)
+                      --->2. you are optimizing or counting over paths
+                      --->shortest path, longest path, counting paths, maximum weight path, minimum cost path use dp on dag 
+                      ---> If the graph has cycles, you need a different approach.If the problem asks for connectivity or reachability, DFS/BFS might be better.
+                      --->Some problems do not give you an explicit graph, but the state space forms a DAG. For example, in a grid where you can only move right or down, each cell is a node, and edges represent valid moves. The grid is a DAG because you cannot return to a previous cell (moving right and down is acyclic).
+                      --->Many classic DP problems are secretly DP on implicit DAGs: knapsack, edit distance, and grid path problems.
+
+We can compute shortest path longest path.We saw path reconstruction using a parent array.We detected cycles that make problems unbounded.
+    
 ⁡
 
 
