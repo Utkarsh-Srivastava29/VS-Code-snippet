@@ -1,0 +1,91 @@
+
+-->DP rerooting->time complexity->O(n)-->Finding something for all the roots.No recomputation, no wasted work.Time: O(n) total.Space: O(n)
+                                      -->Rerooting = down DP + parent contribution, done once each → efficient answers for all nodes.
+                                      -->First do a down pass to compute subtree answers, then an up pass to add parent contributions, giving the correct answer for every node as root.
+                                      -->If the root is fixed and the task is only to collect values from subtrees (sum / count / size) with no choices (max/min), then one DFS is enough—compute subtree values bottom-up and you’re done.
+                                      -->For rerooting, compute the contribution of u excluding child v as down[u] − down[v].Trick: compute prefix and suffix products or sums of children's contributions.This allows excluding any child in O(1) time, keeping the up pass linear (O(n)).
+                                      -->You can’t use down[u] directly because it already includes the contribution of child v.
+                                      -->Rerooting DP uses a down pass and an up pass, with prefix/suffix tricks to exclude one child in O(1), turning all-roots problems from O(n²) into O(n).
+
+                                         function reroot(tree)//O(n) for data
+                                           dfs_down(1,-1)
+                                           dfs_up(1,-1,0)
+                                           for each node v
+                                             answer[v]:=combine(dp_down[v],dp_up[u])
+                                           
+                                      -->Both methods are O(n); BFS is often simpler to code, while DP gives deeper structural insight into trees.The diameter either appears as the longest path from a farthest node (BFS view) or as the sum of two deepest branches meeting at some node (DP view).
+                                      -->down[v] = Σ ( down[u] + size[u] )   for all children u.size[v] = 1 + Σ size[u].+ size[u] → har node 1 edge aur door ho gaya (v → u).down[u] → u ke subtree ke andar distances
+                                      -->Ab har node ko root banane ka effect propagate karna hai.
+                                      -->up[u] =
+                                                 ( up[v] + down[v] )           // sab upar se
+                                               - ( down[u] + size[u] )         // u ke subtree ko hatao
+                                               + ( n - size[u] )               // baaki nodes 1 edge aur door
+                                      -->Down = subtree info.Up = rest of tree info.Answer = combine both
+                                      -->Tree Matching = Parent edge state DP.Is this node already used by parent or free?
+                                      -->dp[u][0] = max matching in subtree of u when u is NOT matched with its parent
+                                      -->dp[u][1] = max matching in subtree of u when u IS matched with its parent
+                                                    --->dp[u][1] (u matched with parent),dp[u][1] = Σ dp[child][0]
+                                                    --->dp[u][0] (u NOT matched with parent),  u kisi child se match na kare->(base = Σ max(dp[child][0], dp[child][1]))  ,  
+                                                                                               u kisi ek child se match kr jae->candidate =  1   +   dp[v][1] +  Σ (for other children c ≠ v) max(dp[c][0], dp[c][1])
+                                     --->final answer  dp[u][0] = max(base, all candidates),answer = max(dp[root][0], dp[root][1])
+                                     --->How to know that the problem is asking about the rerooting?compute X for all possible roots.X could be sum of distances, maximum path length, number of good subtrees, diameter, etc.
+                                     ---> Rerooting works if the answer at each node 𝑣 can be cleanly split into a subtree contribution down[v] and an outside-of-subtree contribution up[v], with both defined consistently.If this decomposition exists, rerooting works.
+                                     --->If we are given a tree and we are given a directed tree and we are asked to reverse some edges for each of the nodes and tell how many edges need to be reversed for a particular node then we can use the correct direction as 0 and the reverse direction as 1 and make an undirected graph for the same and then while going from the node to its child we need to see this particular edge only and that is it about the above.
+                                     --->Distance sum,ans[v] = ans[u] + n - 2 * subtree[v]
+                                     --->Directed edge reversal
+                                         if u -> v:
+                                             cost[v] = cost[u] + 1
+                                         else:
+                                             cost[v] = cost[u] - 1
+                                    --->Prefix–suffix for children,siblings = combine(pref[i-1], suff[i+1]),pref[i]=combine(down[c1​],down[c2​],…,down[ci​]),suff[i]=combine(down[ci​],down[ci+1​],…,down[ck​]),combine(pref[i−1], suff[i+1])
+                                    --->This prefix suffix rule works for sum,min,max,gcd,or/and,not for subtraction,divison and string concatenation,up[ci] = combine(up[u], combine(pref[i-1], suff[i+1]))
+                                    --->dfs1(u, p): node 1 ko root maan kar initial backward edges count.dfs2(u, p): parent se child ko reroot karte hue upar wale rule se cost adjust.Edge direction ke basis par constant time update → poora rerooting O(n) me ho jata hai.Use when: Directed tree me har node ke liye “minimum reversals / cost if this node is root” type problems.
+                                    --->Reroot transition (u → v):Agar edge u → v hai: root v banane par cost +1.Agar edge v → u hai: root v banane par cost −1.
+                                    --->Rerooting likhne ke baad hamesha n = 1 aur n = 2 manually check karo.Agar yahan fail hua, bada input bhi galat hoga.
+                                    --->If your combine is simple → 2 passes.If you need multiple best values or dynamic updates → extra passes / advanced tools.
+                                    --->https://codeforces.com/problemset/problem/1324/F
+                                    --->For the above question which is one lne above if up[u]>0 include it.ans[u]=color[u]+sum(max(0,dp[child])+max(0,up[u])).Sometimes we need to ignore some value
+                                    --->Common mistakes in the above(Rerooting)
+                                        Before submitting rerooting solution, mentally check:
+                                        1.child ka contribution up[v] me exclude hua?
+                                        2.weighted edges me w * size use hua?
+                                        3.up[root] = 0 properly set?
+                                        4.max(0, …) lagaya jahan subtree optional hai?
+                                    --->The hard part is setting up the DP state and combine function correctly, not the two-pass structure itself.
+                                    Jab bhi lage:
+                                    “sirf ek value kaafi nahi hai”
+                                     turant DP state ko struct bana do.
+ 
+                                     pattern same
+
+                                     DFS passes same
+
+                                     sirf state heavy ho jaata hai
+                   
+                                     down[u] = { field1, field2, ... }
+                                     up[u]   = { field1, field2, ... }
+                                      struct State {
+                                          long long cnt;
+                                          long long sum;
+                                       };
+                                     --->Rerooting is not dynamic.Tree badla ⇒ technique badlo.You need dynamic tree data structures like Link-Cut Trees or Euler Tour Trees.If only node values change but the structure stays fixed, you might be able to use rerooting combined with segment trees or other range query structures.
+
+
+
+                                                     
+
+
+
+
+-->Subtree DP-->choosing options like max/min with choices(max/min,matching,independent set,vertex cover)
+
+-->Traversal-->collect data(size,sum,depth)
+
+-->Diameter-->find the longest path
+
+-->Distance sum from node 1 = subtree DP. Distance sum for all nodes = rerooting.
+
+
+
+
+
