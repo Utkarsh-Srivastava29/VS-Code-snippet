@@ -1,0 +1,45 @@
+No cycles ⇒ topological order ⇒ DP works for paths, counts, and scores on DAGs.
+
+
+If a graph has a cycle, there is no "first" node to start from.
+
+
+No cycles ⇒ topological order exists ⇒ dependencies resolved ⇒ DP works.
+
+Kahn's algorithm (BFS-based) and dfs-based(DFS topo sort: push node on exit, reverse stack → topological order in O(V+E).)
+
+Finding the longest path in a general graph is NP-hard.
+
+dp[v] = source se v tak ka longest path.u → v.dp[v] = max(dp[v], dp[u] + 1).dp[source] = 0.baaki sab = −∞.dp[destination].
+Shortest path works the same way, use min instead of max
+
+
+DAG mein shortest path nikaalna Dijkstra se bhi easy hota hai, kyunki cycles nahi hote.DAG mein shortest path = topo order + dp relaxation, no PQ needed.
+
+
+dp[v]=min(dp[v],dp[u]+w(u,v)),relax all the outgoing edges (u,v).This runs in O(V+E) faster than Dijkstra O((E+V)logV).Space complexity is O(V) for the data structures used.
+
+dp[v] = node v tak pahunchne ka maximum score.dp[v] = max(dp[v], dp[u] + w(u,v)).Positive cycle → DP kabhi stable nahi hoga.
+Max path + possible cycles ⇒ pehle positive cycle check from 1, phir DAG DP
+
+
+
+Shortest Path Algorithm
+     1. Compute topological order
+     2. Initialize dp[source]=0, for all other to inf
+     3. for each node u in topological order.For each edge (u,v) dp[v]=min(dp[v],dp[u]+w(u,v))
+     4.dp[destination].So dp[u] is finalized and you can safely use it to update neighbours.This runs in O(V+E) time and uses O(V) space.
+
+
+Cycles + longest path = danger
+Longest path in a DAG finds the critical path or maximum reward, but with cycles it becomes impossible.
+
+
+
+For general graphs directed or undirected with cycles we need to use BellmenFord-DP.
+
+
+⁡
+
+
+
