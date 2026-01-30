@@ -1,4 +1,27 @@
+If the answer at a node depends only on its children / subtree, not on the parent
+If you need the answer for every node, and that answer depends on both children AND parent side
+Only downwards?        → Subtree DP
+Down + Up both needed? → Rerooting DP
+If you ever think:
+“Par parent side ka contribution kaise add karun?”
+👉 STOP. That is rerooting DP.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+🔵Topic-1
 -->DP rerooting->time complexity->O(n)-->Finding something for all the roots.No recomputation, no wasted work.Time: O(n) total.Space: O(n)
                                       -->Rerooting = down DP + parent contribution, done once each → efficient answers for all nodes.
                                       -->First do a down pass to compute subtree answers, then an up pass to add parent contributions, giving the correct answer for every node as root.
@@ -76,6 +99,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+🔵Topic-2
 //Most of the problems of subtree dp can be solved using the subtree size approach or the incude exclude approach and that is it for the subtree dp and always use the posorder traversal
 //Consier each node as the highest possible node and for any node to the leaf question we can use the above idea of path lengths and move forward with that.
 -->Subtree DP(for choices max,min etc and the tree is rooted)-->choosing options like max/min with choices(max/min,matching,independent set,vertex cover)
@@ -191,6 +226,37 @@
                        ---->Consier each node as the highest possible node and for any node to the leaf question we can use the above idea of path lengths and move forward with that.
                        ---->Tree diameter / max path DP me, har node par top-2 downward child paths ko combine karke answer update hota hai.
                        ---->Pick best two downward paths from different children for the maximum path sum and we know well that there might be cases where we have two children going downward and this is same as the diameter and we can ignore the negative weight edges and that's it but for maximum distance from a node we need to consider the parent node also and therefore we need to keep track of that since there is no shift in the leaf node as per the negative weight sum as in this question or the maximum diameter since the question is not asking for the global maximum or minimum so we cannot go only with the node consideration as the nearest node found 
+                       ---->Highest-node thinking works only when the question asks for a global optimum path.
+                            When the question asks for the answer per node, you must consider the parent → hence rerooting
+
+                       ---->https://leetcode.com/problems/binary-tree-maximum-path-sum/description/ see this question and we need to consider each node as the maximum and need to send the highest value from the current node to the parent above as we need to have that finally.
+                       ---->Two branches → used only for global answer.One branch → returned to parent.This pattern solves maximum path sum on trees efficiently,we take max(0LL,extdp[child]) always 
+                       ---->follow the following rule:-
+                            Compute leftmax=max(dfs(left),0)
+                            Compute rightmax=max(dfs(right),0)
+                            Update the path=max(path,v+leftmax+rightmax)
+                            return v+max(leftmax,rightmax)
+                            The global variable finds the value accordingly always
+                       ---->Log ye dono values mix kar dete hain:
+                            left + right + v ko parent ko return kar dete hain ❌
+                            Ya global update bhool jaate hain ❌
+                            In dono ko alag rakho, warna path DP galat ho jaayega
+                      ---->Ye pattern kahaan-kahaan aata hai?
+                           Tree diameter,maximum path sum,longest path,Tree improvement problems
+                           🔵 ek value → return to parent
+                           🔴 ek value → global best
+                      ---->for every root we need rerooting and that is it.
+                      ---->Common mistakes in TREE DP:-
+                           ❌💀Mistake1-->If we do not handle null nodes or leaves our recursion breaks.
+                           ❌💀Mistake2-->Processing nodes before children(Use post order and not preorder)
+                           ❌💀Mistake3-->Confused in the return value one is the global answer and the other one is the local answer that we are trying to just pass to the parent
+                          DAGs → topological order
+                          Cyclic graphs → iterative DP / other algorithms(Like use Belmenford for that)
+                           Tree DP is simpler than Graph DP because trees are acyclic, giving a natural DFS order to compute DP without extra cycle handling.
+                           🔵 Tree + aggregation(Count,maximum and minimum) + no parent dependency = Subtree DP
+
+
+
 
 
 
@@ -262,16 +328,141 @@
 
 
 
+                     //for the placement of those lamps
+                      #include <bits/stdc++.h>
+                      using namespace std;
+
+                      const long long INF = 1e18;
+                      vector<vector<int>> g;
+                      vector<array<long long, 3>> dp;
+                      vector<int> lamp;
+
+                      void dfs(int u, int p) {
+                          dp[u][0] = 1;  // lamp at u
+                          dp[u][1] = 0;  // covered
+                          dp[u][2] = 0;  // not covered
+ 
+                          long long extra = INF;
+                          bool hasLampChild = false;
+ 
+                          for (int v : g[u]) {
+                              if (v == p) continue;
+                              dfs(v, u);
+
+                           dp[u][0] += min({dp[v][0], dp[v][1], dp[v][2]});
+                           dp[u][2] += dp[v][1];
+                           dp[u][1] += min(dp[v][0], dp[v][1]);
+
+                           extra = min(extra, dp[v][0] - min(dp[v][0], dp[v][1]));
+                           if (dp[v][0] <= dp[v][1]) hasLampChild = true;
+                         }
+
+                        if (!hasLampChild)
+                        dp[u][1] += extra;
+                     }
+
+                      void build(int u, int p, int state) {
+                        lamp[u] = (state == 0);
+
+                         if (state == 0) {
+                           for (int v : g[u]) {
+                           if (v == p) continue;
+                           int best = min({dp[v][0], dp[v][1], dp[v][2]});
+                           if (best == dp[v][0]) build(v, u, 0);
+                           else if (best == dp[v][1]) build(v, u, 1);
+                           else build(v, u, 2);
+                      }
+                      }
+
+                     else if (state == 2) {
+                        for (int v : g[u]) {
+                           if (v == p) continue;
+                           build(v, u, 1);
+                        }
+                     }
+
+                     else {
+                        bool forced = false;
+                        int forcedChild = -1;
+
+                        for (int v : g[u]) {
+                        if (v == p) continue;
+                        if (dp[v][0] <= dp[v][1] && !forced) {
+                        forced = true;
+                        forcedChild = v;
+                    }
+                 }
+
+                  if (!forced) {
+                      long long bestExtra = INF;
+                       for (int v : g[u]) {
+                           if (v == p) continue;
+                           long long cur = dp[v][0] - min(dp[v][0], dp[v][1]);
+                            if (cur < bestExtra) {
+                            bestExtra = cur;
+                            forcedChild = v;
+                        }
+                     }
+                  }
+
+                 for (int v : g[u]) {
+                      if (v == p) continue;
+                      if (v == forcedChild) build(v, u, 0);
+                      else {
+                        if (dp[v][0] <= dp[v][1]) build(v, u, 0);
+                        else build(v, u, 1);
+                     }
+                   }
+                 }
+               }
+
+                  int main() {
+                  ios::sync_with_stdio(false);
+                  cin.tie(nullptr);
+
+                  int n;
+                   cin >> n;
+
+                  g.assign(n + 1, {});
+                 dp.assign(n + 1, {0, 0, 0});
+                 lamp.assign(n + 1, 0);
+
+                  for (int i = 0; i < n - 1; i++) {
+                    int u, v;
+                    cin >> u >> v;
+                    g[u].push_back(v);
+                    g[v].push_back(u);
+                   }
+
+                   dfs(1, 0);
+
+                   int rootState = (dp[1][0] <= dp[1][1]) ? 0 : 1;
+                    build(1, 0, rootState);
+
+                    cout << min(dp[1][0], dp[1][1]) << "\n";
+                   for (int i = 1; i <= n; i++)
+                    cout << lamp[i] << " ";
+                    cout << "\n";
+                   }
 
 
 
 
 
 
+
+
+
+
+
+
+🔵Topic-3
 -->Traversal-->collect data(size,sum,depth)
 
+🔵Topic-4
 -->Diameter-->find the longest path
-              
+
+🔵Topic-5
 -->Distance sum from node 1 = subtree DP. Distance sum for all nodes = rerooting.
 
 
