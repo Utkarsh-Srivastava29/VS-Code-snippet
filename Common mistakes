@@ -31,3 +31,48 @@ int32_t main(){
    dfs(1,0,g,dp);
    cout<<min(dp[1][0],dp[1][1])<<"\n";
 }
+
+
+
+4.https://codeforces.com/contest/1324/problem/F
+  #include<bits/stdc++.h>
+using namespace std;
+#define int long long
+void dfs1(int src,int par,vector<vector<int>>&g,vector<int>&dp,vector<int>&value){
+    dp[src]=(value[src]==0)?-1:1;
+    for(auto &child:g[src]){
+       if(child==par) continue;
+       dfs1(child,src,g,dp,value);
+       //always take the positive value of the above and nothing else and that will result in the subgraph
+       dp[src]+=max(0LL,dp[child]);
+    }
+}
+void dfs2(int src,int par,int value,vector<vector<int>>&g,vector<int>&answer,vector<int>&dp){
+       answer[src]=value;
+    //    cout<<src<<" "<<value<<"\n";
+       for(auto &child:g[src]){
+        if(child==par) continue;
+        //yahan se neeche jaa rhe hain then we can find the answer for the following
+        dfs2(child,src,max(0LL,value-max(0LL,dp[child]))+dp[child],g,answer,dp);
+       }
+}
+int32_t main(){
+
+     int n;
+     cin>>n;
+     vector<vector<int>>g(n+1);
+     vector<int>value(n+1);
+     for(int i=1;i<=n;i++) cin>>value[i];
+     for(int i=0;i<n-1;i++){
+       int x,y;
+       cin>>x>>y;
+       g[x].push_back(y);
+       g[y].push_back(x);
+     }
+    vector<int>dp(n+1);
+    dfs1(1,0,g,dp,value);
+    vector<int>answer(n+1);
+    dfs2(1,0,dp[1],g,answer,dp);
+    for(int i=1;i<=n;i++) cout<<answer[i]<<" ";
+  
+}
