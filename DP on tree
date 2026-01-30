@@ -76,13 +76,173 @@
 
 
 
+//Most of the problems of subtree dp can be solved using the subtree size approach or the incude exclude approach and that is it for the subtree dp
+-->Subtree DP(for choices max,min etc and the tree is rooted)-->choosing options like max/min with choices(max/min,matching,independent set,vertex cover)
+                Tree DP = Post-order DFS + child answers ko combine karo.Agar state clearly define ho aur child answers sahi tarah combine ho jaayein, to counting, maximization, path sums aur matching jaise complex problems naturally solve ho jaate hain.
+                Tree = recursive structure → children pehle solve karo, phir parent ka answer banao.
+                Form:dp[u]=f(dp[child1​],dp[child2​],…)
+                Why it works:
+                Trees have no cycles, so each node depends only on its descendants.
+                Tree = ek direction me flow (neeche → upar)
+                DP = neeche se upar answers combine karna
+                Cycle nahi ⇒ circular dependency nahi ⇒ DP safe
+                u → v
+                ↑   ↓
+                ← ← ←
+                Upar waale mein agr mein dp[u] ki value chahiye then we must have the value of the dp[v] and this will just result into the final result and the value.
+                dp[u] chahiye dp[v]
+                dp[v] chahiye dp[u]
+                infinite loop
+                DP impossible (jab tak special algo na lagao)
+                --->Kya problem ka answer “pure tree” se related hai and how do we know that the answer do not depend on the parent and only on the subtree?
+                    “in subtree”, “below”, “downward” → subtree DP
+                     “any node”, “whole tree”, “global” → subtree DP not enough
+                --->agr parent p bhi hamara answer depend krta hai then we need to have dp rerooting and for that we need two pass dp.
+                    Jab har node ka answer “poore tree” se related ho,aur subtree DP incomplete ho jaaye,tab rerooting DP use karte hain.
+                    agar parent ki taraf dekhna pade → rerooting DP (most of the time)
 
--->Subtree DP-->choosing options like max/min with choices(max/min,matching,independent set,vertex cover)
+
+                    Subtree dp important concepts:-
+                    1.subtree
+                    2.descendants
+                    3.below node
+                    4.rooted tree
+                    5.downward paths
+                    6.within the subtree
+
+                    Only subtree info needed   Subtree DP
+                    Whole tree info per node   Rerooting DP
+                    Single root answer         Normal DFS
+                    All nodes as root          Rerooting DP
+
+                    Use post order processing and this ensures you have all child results before computing parent's result.
+                    function dfs(u,parent)
+                         for each child in v of u
+                           if(v!=parent) then
+                               dfs(v,u)
+                                 //process u using results from the children
+                               compute dp[u] from dp[children]
+                     The bottom-up flow is the essence of the subtree dp
+                      -->Subtree DP = post-order DFS + children ke answers jodna
+                      -->void dfs(int u, int p) {
+                              sz[u] = 1;                  // count yourself
+                              for (int v : g[u]) {
+                              if (v == p) continue;
+                              dfs(v, u);
+                              sz[u] += sz[v];         // add child subtree
+                             }
+                         }
+
+                      -->Subtree size = 1 + sum of children’s subtree sizes, computed using post-order DFS.
+
+                      -->pehle clearly define karo ki dp[v] ka matlab kya hai.
+                         dp[v] = number of nodes in subtree rooted at v
+                         dp[v] = maximum path sum starting from v going down
+                         dp[v] = true/false if subtree of v satisfies condition
+                         dp[v] = combine(dp[child1], dp[child2], ..., dp[childk])
+
+                      -->Tree DP = define dp[v] clearly + post-order DFS + combine child dp values
+
+
+                      -->Tree DP = DFS + har node ek baar + har edge do baar ⇒ O(n).Grid DP me same subproblem baar-baar aata hai.Therefore Tree DP is fast.
+                      -->Unrooted tree → pick any root → do subtree DP; root matters only if the problem is directional.
+                      -->run dfs from root(node 1).For each node,visit children first,then compute subtree sizes 
+                         function dfs(u,parent)
+                             size[u]:=1
+                             for each child in v of u
+                                if(v!=parent) then
+                                   dfs(v,u)
+                                   size[u]:=size[u]+size[v] 
+                      -->Tree DP is just: define dp → DFS children → combine answers.This problem shows the core pattern: define state (subtree size), write recurrence (sum children plus self), implement DFS. Many tree DP problems follow this exact structure. The only difference is what you aggregate (size, max, count, etc.).
+                      -->Jab tree problem mein har node par include/exclude ka decision ho aur wo decision children ko affect kare, tab 2-state Include/Exclude DP use hota hai.Agr 2 adjacent log ko nahin le skte hain
+                      -->If you include v,you cannot icnlude its children and therefore dp[v][1]=value+dp[child][0] for all children,else if we exclude node v,each child can be included or excluded independently.dp[v][0]=sum of max(dp[child][0],dp[child][1]) for all children.
+                      Question time:-
+                           Q->you are a robber planning to rob houses arranged in a binary tree. Each house has a value stored at its node. If you rob two directly-linked houses (parent and child), the alarm triggers and you get caught. Find the maximum value you can rob without triggering the alarm?
+                           Solution->This is the classic include/exclude pattern on trees.The constraint (no adjacent nodes) determines the recurrence.
+                           dp[v][0]-->maximum value you can rob from subtree rooted at v if you don't rob the house v.
+                           dp[v][1]-->maximum value you can rob from subtree rooted at v if I do rob at the house v.
+                           
+
+
+
+
+
+
+
+                          //In the following question we can take any root and the proof is that if the answer is minimum for root S1 then first assign according to S1 and then hang the tree using the other node so in this way the answer is always possible from every root.
+                         //Minimum number of lamps required to be lit so that whole tree gets lit and a lamp can lit upto distance 1 only
+                      -->#include <bits/stdc++.h>
+                         using namespace std;
+
+                         const long long INF = 1e18;
+                         vector<vector<int>> g;
+                         vector<array<long long, 3>> dp;
+
+                         void dfs(int u, int p) {
+                         dp[u][0] = 1;     // lamp at u
+                         dp[u][1] = 0;     // covered, no lamp
+                         dp[u][2] = 0;     // not covered
+
+                         long long extra = INF;
+                         bool hasLampChild = false;
+
+                         for (int v : g[u]) {
+                           if (v == p) continue;
+                           dfs(v, u);
+
+                           // Case 0: lamp at u
+                           dp[u][0] += min({dp[v][0], dp[v][1], dp[v][2]});
+
+                           // Case 2: u not covered → children must be covered without lamp
+                           dp[u][2] += dp[v][1];
+
+                           // Case 1: u covered by children
+                           dp[u][1] += min(dp[v][0], dp[v][1]);
+
+                           // Track forcing at least one child to have lamp
+                            extra = min(extra, dp[v][0] - min(dp[v][0], dp[v][1]));
+                            if (dp[v][0] <= dp[v][1]) hasLampChild = true;
+                          }
+ 
+                          if (!hasLampChild)
+                          dp[u][1] += extra;
+                       }
+ 
+                       int main() {
+                       ios::sync_with_stdio(false);
+                       cin.tie(nullptr);
+
+                       int n;
+                       cin >> n;
+
+                       g.assign(n + 1, {});
+                       dp.assign(n + 1, {0, 0, 0});
+
+                       for (int i = 0; i < n - 1; i++) {
+                       int u, v;
+                       cin >> u >> v;
+                       g[u].push_back(v);
+                       g[v].push_back(u);
+                      }
+
+                      dfs(1, 0);
+
+                      cout << min(dp[1][0], dp[1][1]) << "\n";
+                      return 0;
+                     }
+
+
+
+
+
+
+
+
 
 -->Traversal-->collect data(size,sum,depth)
 
 -->Diameter-->find the longest path
-
+              
 -->Distance sum from node 1 = subtree DP. Distance sum for all nodes = rerooting.
 
 
