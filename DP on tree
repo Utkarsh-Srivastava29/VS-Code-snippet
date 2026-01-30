@@ -190,8 +190,7 @@
                                       best_down[v] = best1
                        ---->Consier each node as the highest possible node and for any node to the leaf question we can use the above idea of path lengths and move forward with that.
                        ---->Tree diameter / max path DP me, har node par top-2 downward child paths ko combine karke answer update hota hai.
-                       
-           
+                       ---->Pick best two downward paths from different children for the maximum path sum and we know well that there might be cases where we have two children going downward and this is same as the diameter and we can ignore the negative weight edges and that's it but for maximum distance from a node we need to consider the parent node also and therefore we need to keep track of that since there is no shift in the leaf node as per the negative weight sum as in this question or the maximum diameter since the question is not asking for the global maximum or minimum so we cannot go only with the node consideration as the nearest node found 
 
 
 
