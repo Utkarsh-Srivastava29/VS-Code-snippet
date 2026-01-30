@@ -76,7 +76,8 @@
 
 
 
-//Most of the problems of subtree dp can be solved using the subtree size approach or the incude exclude approach and that is it for the subtree dp
+//Most of the problems of subtree dp can be solved using the subtree size approach or the incude exclude approach and that is it for the subtree dp and always use the posorder traversal
+//Consier each node as the highest possible node and for any node to the leaf question we can use the above idea of path lengths and move forward with that.
 -->Subtree DP(for choices max,min etc and the tree is rooted)-->choosing options like max/min with choices(max/min,matching,independent set,vertex cover)
                 Tree DP = Post-order DFS + child answers ko combine karo.Agar state clearly define ho aur child answers sahi tarah combine ho jaayein, to counting, maximization, path sums aur matching jaise complex problems naturally solve ho jaate hain.
                 Tree = recursive structure → children pehle solve karo, phir parent ka answer banao.
@@ -161,7 +162,36 @@
                            Solution->This is the classic include/exclude pattern on trees.The constraint (no adjacent nodes) determines the recurrence.
                            dp[v][0]-->maximum value you can rob from subtree rooted at v if you don't rob the house v.
                            dp[v][1]-->maximum value you can rob from subtree rooted at v if I do rob at the house v.
-                           
+                           dp[v][1]=value[v]+dp[left][0]+dp[right][0]-->agr rob krte ho
+                           dp[v][0]=max(dp[left][0],dp[left][1])+max(dp[right][0],dp[right][1])-->agr rob na karein
+                        ---->From here, you build up: leaves compute their DP from null children, parents compute from children, and so on up to the root. The final answer is max(dp[root][0],dp[root][1]).
+                             //using the postorder traversal and that is it for the dp related problem
+                             The pseudocode is as follows:-Time complexity-->O(n) and space is O(h) where h is the height of the tree
+                             function dfs(v)
+                                if v is null then return (0,0)
+                             (left0,left1):=dfs(v.left)
+                             (right0,right1):=dfs(v.right)
+                             rob:=v.val+left0+right0
+                             skip:=max(left0,left1)+max(right0,right1)
+                             return (skip,rob)
+
+                        ---->The above pattern comes when we have something of the constraint that we cannot take both parent and child at a moment,we cannot pick the adjacent nodes and so on.
+                             The structure is always the same two states,different transitions and the problem is that's all.
+
+                       ---->for paths in a tree we need to consider a node as the nearst node to the root and that is it
+                                      dfs(v):
+                                      best1 = best2 = 0
+                                      for child u:
+                                        dfs(u)
+                                        cur = best_down[u] + edge_or_value
+                                        update best1, best2 with cur
+
+                                      answer = max(answer, best1 + best2)
+                                      best_down[v] = best1
+                       ---->Consier each node as the highest possible node and for any node to the leaf question we can use the above idea of path lengths and move forward with that.
+                       ---->Tree diameter / max path DP me, har node par top-2 downward child paths ko combine karke answer update hota hai.
+                       
+           
 
 
 
