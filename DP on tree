@@ -1,5 +1,5 @@
-If the answer at a node depends only on its children / subtree, not on the parent
-If you need the answer for every node, and that answer depends on both children AND parent side
+If the answer at a node depends only on its children / subtree, not on the parent-->subtree dp
+If you need the answer for every node, and that answer depends on both children AND parent side--->dp rerooting
 Only downwards?        → Subtree DP
 Down + Up both needed? → Rerooting DP
 If you ever think:
