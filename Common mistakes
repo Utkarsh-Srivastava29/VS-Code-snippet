@@ -1,2 +1,33 @@
 1.In articulation point if the node is 1 and the number of children >1 and then it must be counted within the not visited condition or the number of children must be updated in the not visited and not for the visited case
 2.In case of longest flight routes,we need to bfs based topo sort and update dp[1]=1 and then for the children we need to check if dp[src]!=-1 and dp[src]+1>dp[child] then we will update in this condition only because it is possible that dp[src]==-1 and is not reachable from the src node and then we need to take care of the fact that the graph does not contain the cycle and for that the toposort must contain n nodes and also dp[n]==-1 that means if this is not reachable at the moment then also it is impossible.
+3.https://www.spoj.com/problems/PT07X/
+        #include<bits/stdc++.h>
+        using namespace std;
+        #define int long long
+        void dfs(int src,int par,vector<vector<int>>&g,vector<vector<int>>&dp){
+        //agr hum is node ko le lein
+        dp[src][0]=1;
+        //agr hum is node ko na lein
+        dp[src][1]=0;
+        for(auto &child:g[src]){
+         if(child==par) continue;
+         dfs(child,src,g,dp);
+         dp[src][0]+=min(dp[child][0],dp[child][1]);
+          dp[src][1]+=dp[child][0];
+       }
+   }
+int32_t main(){
+   int n;
+   cin>>n;
+   vector<vector<int>>g(n+1);
+   for(int i=0;i<n-1;i++){
+       int x,y;
+       cin>>x>>y;
+       g[x].push_back(y);
+       g[y].push_back(x);
+   }
+   vector<vector<int>>dp(n+1,vector<int>(2,0));
+   //undirected graph hai lekin global maximum ya global minimum chahiye then it is same for all the other nodes we can hang it easliy
+   dfs(1,0,g,dp);
+   cout<<min(dp[1][0],dp[1][1])<<"\n";
+}
