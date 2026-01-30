@@ -79,6 +79,6 @@ int32_t main(){
 
 4.https://cses.fi/problemset/task/1673/
 High score question mein pooocha gya hai ki agr hum node 1 se start karein to kya hum n tak pahunch jayenge maximum score ke saath and if the score is increased and becomes infinte starting from 1 and till the n then we wil say that it will just increase to infinite
-to ek kaam kr skte hain that we first run n-1 times the M edges taaki har edge trigger ho jaaye for its updation and all of the people who are just n-1 edges can be triggered and which are reachable from 1 will be triggered because each time it will cost the value to be increased
+to ek kaam kr skte hain that we first run n-1 times the M edges taaki har edge trigger ho jaaye for its updation and all of the people who are just n-1 edges can be triggered and which are reachable from 1 will be triggered because each time it will cost the value to be increased.Pehli baar 1 se koi aur node and then us node se aage ya fir 1 se doosri node and then so on so all the nodes will be updated finally.
 and then finally do n relaxations like 1->2->1 with edge weight -1,-1 and then 2->3->4->5->6 so for updating 6 we need to do n updates again in the worst case
 and then the final value can be found easily
