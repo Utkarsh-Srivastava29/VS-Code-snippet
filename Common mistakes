@@ -190,3 +190,56 @@ int32_t main(){
     cout<<"YES"<<"\n";
     for(auto &x:ans) cout<<x<<" ";
 }
+
+
+
+
+
+
+
+
+
+
+6.https://leetcode.com/problems/binary-tree-cameras/description/
+class Solution {
+public:
+    void dfs1(int src,int par,vector<vector<int>>&g,vector<int>&sub,vector<int>&dp){
+        for(auto &child:g[src]){
+            if(child==par) continue;
+            dfs1(child,src,g,sub,dp);
+            //now using the children sum to the other nodes in its subtree and then using the subtree size to increase the distance by 1
+            dp[src]+=dp[child];
+            //itna increase hongi distance
+            dp[src]+=sub[child];
+            //aur subtree size bhi increase kro
+            sub[src]+=sub[child];
+        }
+    }
+    void dfs2(int src,int par,vector<vector<int>>&g,vector<int>&sub,int value,vector<int>&answer){
+        answer[src]=value;
+        for(auto &child:g[src]){
+            if(child==par) continue;
+            //neeche jaein to sbki distance subtree size se ghategi and then n-subtree size se badh jayegi
+            dfs2(child,src,g,sub,value-sub[child]+(sub[0]-sub[child]),answer);
+        }
+    }
+    vector<int> sumOfDistancesInTree(int n, vector<vector<int>>& edges) {
+        //dp rerooting using the two pass
+        vector<int>dp(n);
+        vector<int>sub(n,1);
+        vector<vector<int>>g(n+1);
+        for(int i=0;i<n-1;i++){
+            int x=edges[i][0];
+            int y=edges[i][1];
+            g[x].push_back(y);
+            g[y].push_back(x);
+            // cout<<x<<" "<<y<<"\n";
+        }
+        //1st pass down pass
+        dfs1(0,-1,g,sub,dp);
+        //up pass
+        vector<int>answer(n);
+        dfs2(0,-1,g,sub,dp[0],answer);
+        return answer;
+    }
+};
