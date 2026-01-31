@@ -77,8 +77,116 @@ int32_t main(){
   
 }
 
+
+
+
+
+
 4.https://cses.fi/problemset/task/1673/
+//yahan pe n-1 and then n baar chalana hi pdega and reachability check krna pdega
 High score question mein pooocha gya hai ki agr hum node 1 se start karein to kya hum n tak pahunch jayenge maximum score ke saath and if the score is increased and becomes infinte starting from 1 and till the n then we wil say that it will just increase to infinite
 to ek kaam kr skte hain that we first run n-1 times the M edges taaki har edge trigger ho jaaye for its updation and all of the people who are just n-1 edges can be triggered and which are reachable from 1 will be triggered because each time it will cost the value to be increased.Pehli baar 1 se koi aur node and then us node se aage ya fir 1 se doosri node and then so on so all the nodes will be updated finally.
 and then finally do n relaxations like 1->2->1 with edge weight -1,-1 and then 2->3->4->5->6 so for updating 6 we need to do n updates again in the worst case
 and then the final value can be found easily
+#include<bits/stdc++.h>
+using namespace std;
+#define int long long
+int32_t main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int n,m;
+    cin>>n>>m;
+    vector<array<int,3>>g;
+    for(int i=0;i<m;i++){
+        int x,y,z;
+        cin>>x>>y>>z;
+        g.push_back({x,y,-z});
+    }
+    vector<int>dp(n+1,1e18);
+    dp[1]=0;
+    for(int i=0;i<n-1;i++){
+        for(int j=0;j<g.size();j++){
+            int x=g[j][0];
+            int y=g[j][1];
+            int w=g[j][2];
+            if(dp[x]<1e18 and dp[y]>dp[x]+w){
+                dp[y]=dp[x]+w;
+            }
+        }
+    }
+    for(int i=0;i<n;i++){
+        for(int j=0;j<g.size();j++){
+            int x=g[j][0];
+            int y=g[j][1];
+            int w=g[j][2];
+            if(dp[x]<1e18 and dp[y]>dp[x]+w){
+                dp[y]=-1e18;
+            }
+        }
+    }
+    if(dp[n]==-1e18) cout<<"-1"<<"\n";
+    else cout<<-dp[n]<<"\n";
+}
+
+
+
+
+
+
+
+
+
+
+5.https://cses.fi/problemset/task/1673/
+#include<bits/stdc++.h>
+using namespace std;
+#define int long long
+int32_t main(){
+    int n,m;
+    cin>>n>>m;
+    //cycle finding mein hum log negative cycle nikalenge at once
+    //last waale round mein koi bhi update ho jaaaye to hamara kaam ho jayega
+    vector<array<int,3>>edges;
+    for(int i=0;i<m;i++){
+        int x,y,z;
+        cin>>x>>y>>z;
+        edges.push_back({x,y,z});
+    }
+    //n-1 baar chalane ke baad ek baar aur chalake dekh skte hain and at the end jo last node hai wo unvisited rhega
+    int k=-1;
+    //minimum lena hai
+    vector<int>dp(n+1,1e18);
+    dp[1]=0;
+    vector<int>parent(n+1,-1);
+    for(int i=0;i<n;i++){
+       k=-1;
+       for(int j=0;j<m;j++){
+          if(dp[edges[j][0]]+edges[j][2]<dp[edges[j][1]]){
+            dp[edges[j][1]]=dp[edges[j][0]]+edges[j][2];
+            parent[edges[j][1]]=edges[j][0];
+            k=edges[j][1];
+          }
+       }
+    }
+    if(k==-1){
+        cout<<"NO"<<"\n";
+        return 0;
+    }
+    //humlog n baar krke 1->2(-1) 2->1(-1) 2->3->4->5->6
+    for(int i=0;i<n;i++){
+        k=parent[k];
+    }
+    int curr=k;
+    vector<int>ans;
+    ans.push_back(curr);
+    curr=parent[curr];
+    while(curr!=k){
+        ans.push_back(curr);
+        curr=parent[curr];
+    }
+    ans.push_back(curr);
+    //reverse krna zaroori hai kyunki hum kbhi bhi 1->2->3->1 and we will have to 3->2->1->3 will not form he cycle
+    reverse(ans.begin(),ans.end());
+    cout<<"YES"<<"\n";
+    for(auto &x:ans) cout<<x<<" ";
+}
