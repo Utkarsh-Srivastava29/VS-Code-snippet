@@ -243,3 +243,52 @@ public:
         return answer;
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+7.https://leetcode.com/problems/binary-tree-maximum-path-sum/description/
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    int f(TreeNode* root,int &maxi){
+        if(root==NULL) return 0;
+        auto left1=f(root->left,maxi);
+        auto right1=f(root->right,maxi);
+        int y=root->val+max(left1,0)+max(right1,0);
+        // cout<<y<<" "<<left1<<" "<<right1<<"\n";
+        maxi=max(maxi,y);
+
+-----------------------------------------------------------------------------------------------//humko maximum lena pdega nahin to kisi overall negative weight kaam nahin krega and hence we can take positive value for a particular node only
+        return root->val+max({left1,right1,0}); //do not share it with value further on and finally the value will just get added 
+//This is wrong        return root->val+max({left1,right1})   //like if we value +2 and left=-10 and right=-8 then the effect of 2 will just get vanished off during the traversal 
+-----------------------------------------------------------------------------------------------
+
+
+
+    }
+    int maxPathSum(TreeNode* root) {
+        int maxi=-1e9;
+        f(root,maxi);
+        return maxi;
+    }
+};
