@@ -292,3 +292,131 @@ public:
         return maxi;
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+https://atcoder.jp/contests/dp/tasks/dp_v
+#include<bits/stdc++.h>
+using namespace std;
+#define int long long
+//hum sbko independently chun skte hain this subtree is black and then the next subtree is black and so on
+void dfsdown(int src,int par,vector<vector<int>>&g,vector<int>&down,int mod){
+  //agr isko black krein to kitne tareeke se krenga
+  down[src]=1;
+  for(auto &child:g[src]){
+    if(child==par) continue;
+    dfsdown(child,src,g,down,mod);
+    down[src]=(down[src]*(down[child]%mod+1)%mod);
+  }
+}
+void dfsup(int src,int par,vector<vector<int>>&g,vector<int>&down,vector<int>&up,int mod){
+    //ye mat krna 
+    // up[src]=1;
+    int sz=g[src].size();
+    vector<int>pref(sz),suff(sz);
+    int pro1=1;
+    int pro2=1;
+    for(int i=0;i<sz;i++){
+        if(g[src][i]!=par)pro1=((down[g[src][i]]+1)*pro1%mod)%mod;
+        pro1%=mod;
+        pref[i]=pro1;
+    }
+    for(int i=sz-1;i>=0;i--){
+        if(g[src][i]!=par)pro2=((down[g[src][i]]+1)*pro2%mod)%mod;
+        pro2%=mod;
+        suff[i]=pro2;
+    }
+    for(int i=0;i<sz;i++){
+        if(g[src][i]==par) continue;
+        int answer=(up[src]);
+        if(i-1>=0){
+            answer=(answer*pref[i-1]%mod)%mod;
+            answer%=mod;
+        }
+        if(i+1<sz){
+            answer=(answer*suff[i+1]%mod)%mod;
+            answer%=mod;
+        }
+        up[g[src][i]]=(answer+1)%mod;
+        dfsup(g[src][i],src,g,down,up,mod);
+    }
+}
+int32_t main(){
+    int n,mod;
+    cin>>n>>mod;
+    vector<vector<int>>g(n+1);
+    for(int i=0;i<n-1;i++){
+        int x,y;
+        cin>>x>>y;
+        g[x].push_back(y);
+        g[y].push_back(x);
+    }
+   vector<int>down(n+1);
+   dfsdown(1,0,g,down,mod);
+   vector<int>up(n+1);
+   up[1]=1;
+   dfsup(1,0,g,down,up,mod);
+//    cout<<up[1]<<" "<<up[2]<<" "<<up[3]<<"\n";
+   for(int i=1;i<=n;i++){
+    int now=(down[i]%mod*up[i]%mod)%mod;
+    cout<<now<<"\n";
+   }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+https://atcoder.jp/contests/dp/tasks/dp_p
+#include<bits/stdc++.h>
+using namespace std;
+#define int long long
+const int mod=1e9+7;
+void dfs(int src,int par,vector<vector<int>>&g,vector<vector<int>>&dp){
+    //agr black kr doon
+    dp[src][0]=1;
+    //agr white kr doon
+    dp[src][1]=1;
+    for(auto &child:g[src]){
+        if(child==par) continue;
+        dfs(child,src,g,dp);
+        //agr hum white kr dein to neeche waale ko chahe jo kr do
+        dp[src][1]=((dp[src][1]%mod*(dp[child][1]%mod+dp[child][0]%mod)%mod))%mod;
+        dp[src][0]=(dp[src][0]%mod*dp[child][1]%mod)%mod;
+    }
+}
+int32_t main(){
+    int n;
+    cin>>n;
+    vector<vector<int>>g(n+1);
+    for(int i=0;i<n-1;i++){
+        int x,y;
+        cin>>x>>y;
+        g[x].push_back(y);
+        g[y].push_back(x);
+    }
+   vector<vector<long long>>dp(n+1,vector<long long>(2,0));
+   dfs(1,0,g,dp);
+   cout<<(dp[1][0]%mod+dp[1][1]%mod)%mod<<"\n";
+}
+
