@@ -1,0 +1,331 @@
+Bipartite Graphs
+
+1.Intro to bipartite graphs, how to detect them using 2-coloring, and their use in problems like team assignment and scheduling conflicts.
+2.A bipartite graph is one where nodes can be divided into two groups such that every edge goes between the groups and none within a group. Real-world example: candidates ↔ companies. Graphs with odd cycles (like a triangle) are not bipartite.
+3.A graph is bipartite iff it can be 2-colored so that no edge connects nodes of the same color; the two colors directly represent the two groups.
+4.In a bipartite graph, vertices can be divided into two sets so every edge goes across the sets; this division may vary in disconnected graphs, but in a connected graph choosing one node’s side fixes all others.
+5.Connected graph ⇒ paths force colors uniquely; disconnected graph ⇒ no paths, so free choice.
+6.In a bipartite graph, nodes are divided into two partitions (U and V) such that every edge goes between the two.The partitioning is not unique for disconnected graphs, but in a connected bipartite graph, once you fix one node’s side, the positions of all other nodes are forced by the graph structure.
+7.The two groups in a bipartite graph are called partitions.
+8.The red nodes form one group, blue nodes form the other. This is why bipartite graphs are also called "2-colorable."
+9.Bipartite graphs model two-sided relationships
+--->people and course:edges connect people to courses they are enrolled in.
+--->Job applicants and positions: edges show who's qualified for what.
+--->people and products: edges represent purchases or reviews.
+--->Authors and papers: edges link authors to their publications.
+10.Because edges connect only across the two types, the graph is bipartite, which enables efficient matching and assignment algorithms that are not applicable to general graphs.
+11.A graph is bipartite iff it has no odd-length cycle. Odd cycles (like a triangle) break 2-coloring because colors conflict when the cycle closes, while even cycles work since colors alternate and match up correctly.
+12.When you 2-color a cycle, odd-length cycles force a conflict (start and end get the same color), while even-length cycles alternate cleanly with no conflict, explaining why odd cycles make a graph non-bipartite.
+
+
+
+
+
+
+
+13.For deep graphs, BFS avoids recursion limits.
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n, m;
+    cin >> n >> m;               // n nodes, m edges
+    vector<vector<int>> adj(n);
+    
+    for(int i = 0; i < m; i++) {
+        int u, v;
+        cin >> u >> v;
+        u--; v--;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+
+    vector<int> color(n, -1);    // -1 = uncolored, 0/1 = colors
+    bool ok = true;
+
+    for(int i = 0; i < n; i++) {
+        if(color[i] == -1) {
+            queue<int> q;
+            q.push(i);
+            color[i] = 0;
+
+            while(!q.empty()) {
+                int v = q.front(); q.pop();
+                for(int u : adj[v]) {
+                    if(color[u] == -1) {
+                        color[u] = color[v] ^ 1;
+                        q.push(u);
+                    } else if(color[u] == color[v]) {
+                        ok = false;
+                        break;
+                    }
+                }
+                if(!ok) break;
+            }
+        }
+        if(!ok) break;
+    }
+
+    if(!ok) {
+        cout << "NOT BIPARTITE\n";
+    } else {
+        cout << "BIPARTITE\n";
+        // print partitions
+        for(int i = 0; i < n; i++)
+            cout << color[i] << " ";
+        cout << "\n";
+    }
+}
+
+
+
+
+
+
+
+14.Use BFS to 2-color the graph by levels—assign opposite colors to neighbors and if any edge connects same-colored nodes, the graph is not bipartite.
+15.
+#include<bits/stdc++.h>
+using namespace std;
+void dfs(int src,int par,vector<int>&vis,vector<vector<int>>&g){
+    for(auto &x:g[src]){
+        if(vis[x]==0){
+            vis[x]=3-vis[src];
+            dfs(x,src,vis,g);
+        }
+        else if(vis[x]==vis[src]){
+            cout<<"IMPOSSIBLE"<<"\n";
+            exit(0);
+        }
+    }
+}
+int32_t main(){
+    int n,m;
+    cin>>n>>m;
+    vector<vector<int>>g(n+1);
+    for(int i=0;i<m;i++){
+        int x,y;
+        cin>>x>>y;
+        g[x].push_back(y);
+        g[y].push_back(x);
+    }
+    vector<int>vis(n+1);
+    for(int i=1;i<=n;i++){
+        if(!vis[i]){
+            vis[i]=1;
+            dfs(i,0,vis,g);
+        }
+    }
+    for(int i=1;i<=n;i++){
+        cout<<vis[i]<<" ";
+    }
+    cout<<"\n";
+}
+
+
+
+
+
+
+
+
+
+16.Only if all components pass is the graph bipartite. Forgetting this outer loop is one of the most common bugs.Disconnected Graphs considered.
+17.
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<vector<int>> adj;
+vector<int> color;   // -1 = uncolored, 0 / 1 = two colors
+bool ok = true;
+
+void dfs(int v, int c) {
+    color[v] = c;
+    for (int u : adj[v]) {
+        if (color[u] == -1) {
+            dfs(u, c ^ 1);   // opposite color
+            if (!ok) return;
+        }
+        else if (color[u] == c) {
+            ok = false;     // conflict
+            return;
+        }
+    }
+}
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    adj.assign(n, {});
+    color.assign(n, -1);
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        cin >> u >> v;
+        --u; --v;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+
+    // Handle disconnected graph
+    for (int i = 0; i < n; i++) {
+        if (color[i] == -1) {
+            dfs(i, 0);
+            if (!ok) break;
+        }
+    }
+
+    cout << (ok ? "YES\n" : "NO\n");
+    return 0;
+}
+
+
+
+
+
+18.either works for most problems(BFS and dfs); use BFS for deep graphs, otherwise choose what you’re comfortable with—knowing both is best.
+19.a.)Forgetting to loop over all connected components, so conflicts in other components are missed.
+   b.)Indexing errors, especially mixing 0-indexed and 1-indexed graphs.
+   c.)Building the graph incorrectly (forgetting edges are undirected).
+   d.)Checking colors in the wrong order—first check if already colored and conflicting, then assign if uncolored.
+   e.)Using 0 as “unvisited” even though 0 is a valid color; use -1 for unvisited.
+
+
+
+20.This is optimal because to verify bipartiteness, every edge must be checked—a single edge forming an odd cycle can invalidate the graph.
+21.If two adjacent nodes have the same color, a conflict is found (odd cycle exists), so return false immediately. Otherwise, continue traversal.
+22.Disconnected graph ho sakta hai, isliye har unvisited node se BFS/DFS start karo—agar kisi bhi component me conflict mile to graph bipartite nahi hai.
+23.Har unvisited node se BFS start karke 2-coloring karo; agar kisi edge par same-color neighbors mil jaayein to false, warna sab components pass ho jaayein to graph bipartite (true).
+24.Har connected component par BFS se 2-coloring karo; agar kisi edge ke dono ends same color ho jaayein to bipartite nahi, warna bipartite.
+25.Graph ko bipartite check karne ke liye har connected component par BFS + 2-coloring lagao; agar kisi edge ke dono endpoints same color ho jaayen, to answer false, warna true.
+26.
+#include <bits/stdc++.h>
+using namespace std;
+
+class Solution {
+public:
+    bool isBipartite(vector<vector<int>>& graph) {
+        int n = graph.size();
+        vector<int> color(n, -1); // -1 = uncolored, 0/1 = colors
+
+        for (int i = 0; i < n; i++) {
+            if (color[i] != -1) continue;
+
+            queue<int> q;
+            q.push(i);
+            color[i] = 0;
+
+            while (!q.empty()) {
+                int u = q.front();
+                q.pop();
+
+                for (int v : graph[u]) {
+                    if (color[v] == -1) {
+                        color[v] = 1 - color[u];
+                        q.push(v);
+                    } else if (color[v] == color[u]) {
+                        return false; // conflict found
+                    }
+                }
+            }
+        }
+        return true;
+    }
+};
+27.If during BFS, an edge connects two nodes with the same color → graph is NOT bipartite.
+28.You are given people as nodes and “dislikes” as edges in an undirected graph, and the task is to check whether the graph is bipartite, i.e., whether people can be split into two groups such that no connected (disliking) pair is in the same group.
+29.Guests are nodes and “dislikes” are edges; the goal is to place guests into two rooms so no disliking pair is together—this is exactly checking whether the graph is bipartite (2-colorable).
+30.Har dislike edge ko ensure karo ki wo do alag colors (groups) ke beech jaaye; agar kahin bhi same color ka edge mil gaya, to bipartition impossible.
+31.Example walkthrough shows how BFS 2-coloring works for Possible Bipartition: build the graph from dislikes, start BFS from node 1 by coloring it 0, color its neighbors with the opposite color, continue level by level checking that every edge connects opposite colors, and since no conflict appears, the graph is bipartite, giving valid groups {1,4} and {2,3} and returning true
+32.Can you split into two groups where X?This is a bipartite graph.
+33.“2 teams + enemies = bipartite graph”
+34.
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<int>> g(n + 1);
+    for (int i = 0; i < m; i++) {
+        int a, b;
+        cin >> a >> b;
+        g[a].push_back(b);
+        g[b].push_back(a);
+    }
+
+    vector<int> color(n + 1, 0); // 0 = unvisited, 1 = team 1, 2 = team 2
+
+    for (int i = 1; i <= n; i++) {
+        if (color[i] != 0) continue;
+
+        queue<int> q;
+        q.push(i);
+        color[i] = 1;
+
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+
+            for (int v : g[u]) {
+                if (color[v] == 0) {
+                    color[v] = 3 - color[u]; // flips 1 <-> 2
+                    q.push(v);
+                } else if (color[v] == color[u]) {
+                    cout << "IMPOSSIBLE\n";
+                    return 0;
+                }
+            }
+        }
+    }
+
+    for (int i = 1; i <= n; i++) {
+        cout << color[i] << " ";
+    }
+    cout << "\n";
+}
+35.
+You have learned bipartite graphs:
+
+
+1. A bipartite graph can be split into two groups with all edges between groups.
+
+
+2. Equivalently, you can 
+
+2-color it with no adjacent same-colored nodes.
+
+
+3. A graph is bipartite if and only if it has no odd cycles.
+
+
+4. Detection uses BFS or DFS with alternating colors. Same-color neighbors mean not bipartite.
+
+
+5. The pattern appears in many problems: "split into two groups where X" often means bipartite.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
