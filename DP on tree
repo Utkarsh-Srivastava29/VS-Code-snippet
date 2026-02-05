@@ -459,8 +459,462 @@ If you ever think:
 🔵Topic-3
 -->Traversal-->collect data(size,sum,depth)
 
-🔵Topic-4
--->Diameter-->find the longest path
+
+
+
+
+
+
+🔵Topic-4---->(Diameter tells how bad the worst case is; center tells where to stand to make it least bad.)
+-->Diameter-->find the longest path and the centre finding the middle of the tree
+          --->We don’t measure trees with a tape; we measure them with diameter & center algorithms.
+              Diameter → the longest path between any two nodes
+              Center → the most central node(s) (minimizes maximum distance)
+              Two-BFS method (simple and intuitive) and DP-based method (more powerful/efficient)
+              The diameter of a tree is the length of the longest path between any two nodes in the tree.
+              Diameter ke bina center nahi milta.
+              Center = node jo sabse door wale node se bhi kam se kam distance pe ho
+              Diameter = tree ka worst-case distance blueprint
+
+              "where should I place the root to minimize depth?"
+               we should place the node on the centre of the tree.
+
+
+               Naive BFS-from-every-node works only for small trees; for large trees, use the two-BFS diameter algorithm.
+
+               Use two BFS runs instead of n BFS runs to find the tree diameter efficiently.
+
+               The farthest node from any start in a tree is always an endpoint of the diameter (or on its path). Hence, two BFS runs are enough to find the diameter efficiently.
+
+               #include <bits/stdc++.h>
+               using namespace std;
+
+               pair<int,int> bfs(int start, vector<vector<int>> &adj, int n) {
+               vector<int> dist(n + 1, -1);
+               queue<int> q;
+
+               dist[start] = 0;
+               q.push(start);
+
+                int farthest = start;
+
+               while (!q.empty()) {
+               int u = q.front();
+               q.pop();
+
+               for (int v : adj[u]) {
+               if (dist[v] == -1) {
+                 dist[v] = dist[u] + 1;
+                 q.push(v);
+
+                 if (dist[v] > dist[farthest])
+                    farthest = v;
+               }
+              }
+             }
+            return {farthest, dist[farthest]};
+           }
+
+           int main() {
+           int n;
+           cin >> n;
+
+           vector<vector<int>> adj(n + 1);
+           for (int i = 0; i < n - 1; i++) {
+           int u, v;
+           cin >> u >> v;
+           adj[u].push_back(v);
+           adj[v].push_back(u);
+          }
+
+          // First BFS from any node (1)
+          int a = bfs(1, adj, n).first;
+
+          // Second BFS from a
+          int diameter = bfs(a, adj, n).second;
+
+          cout << diameter << "\n";
+          return 0;
+          }
+
+
+         The farthest node from any node must be a diameter endpoint
+      -->Two BFS runs are enough to find the tree diameter efficiently in O(n) time.
+      -->Tree me agar extreme cheez chahiye (longest / farthest), to endpoints se BFS try karo.
+      -->Tree diameter = kisi node ke through jaane wali do sabse lambi branches ka sum
+
+
+         #include <bits/stdc++.h>
+          using namespace std;
+
+          int diameter = 0;
+
+         int dfs(int node, int parent, vector<vector<int>> &adj) {
+         int max1 = 0, max2 = 0;
+
+         for (int child : adj[node]) {
+             if (child == parent) continue;
+
+            int childHeight = dfs(child, node, adj) + 1;
+
+            if (childHeight > max1) {
+             max2 = max1;
+             max1 = childHeight;
+           } 
+            else if (childHeight > max2) {
+             max2 = childHeight;
+           }
+        }
+    
+       // Update global diameter
+       diameter = max(diameter, max1 + max2);
+   
+        // Return height of subtree rooted at node
+       return max1;
+      }
+
+     int main() {
+      ios::sync_with_stdio(false);
+      cin.tie(NULL);
+
+      int n;
+      cin >> n;
+
+      vector<vector<int>> adj(n + 1);
+      for (int i = 0; i < n - 1; i++) {
+         int u, v;
+         cin >> u >> v;
+         adj[u].push_back(v);
+         adj[v].push_back(u);
+      }
+
+      dfs(1, 0, adj);
+
+      cout << diameter << "\n";
+      return 0;
+    } 
+
+                     Two-BFS = simple & fast
+                     DP = powerful & flexible
+
+         
+                    DP is preferred when you also need local / per-node diameter information, not just the final diameter value.
+                    Local answers + dependency = DP
+                    Local answers + no dependency = Greedy / BFS / Sliding Window
+                    At every node, combine left and right heights to update the diameter.
+                    During a single DFS, return subtree height for each node and update the diameter using leftHeight + rightHeight.
+                    Use a single DFS: for each node, get left and right subtree heights, update the answer with left + right, and return 1 + max(left, right); this visits each node once in O(n) time.
+
+
+       
+               Diameter of Binary Tree -
+
+            class Solution {
+             public:
+             int diameter = 0;
+
+             int height(TreeNode* node) {
+             if (!node) return 0;
+
+              int left = height(node->left);
+               int right = height(node->right);
+
+               diameter = max(diameter, left + right);
+
+               return 1 + max(left, right);
+            }
+
+             int diameterOfBinaryTree(TreeNode* root) {
+             height(root);
+            return diameter;
+            }
+          };
+
+
+
+           Tree problems me “children → combine → global update” DP pattern bohot powerful hai.
+           👉 Tree center = diameter ka middle, jo maximum distance ko minimum karta hai.
+           #include <bits/stdc++.h>
+           using namespace std;
+
+           int main() {
+           int n;
+           cin >> n;
+
+           vector<vector<int>> adj(n);
+           vector<int> deg(n, 0);
+
+           for (int i = 0; i < n - 1; i++) {
+             int u, v;
+             cin >> u >> v;
+            --u; --v;
+            adj[u].push_back(v);
+            adj[v].push_back(u);
+            deg[u]++;
+            deg[v]++;
+         }
+
+         queue<int> q;
+         for (int i = 0; i < n; i++) {
+                if (deg[i] == 1 || n == 1)
+                    q.push(i);
+          }
+
+         int remaining = n;
+
+         while (remaining > 2) {
+            int sz = q.size();
+            remaining -= sz;
+
+            while (sz--) {
+                int u = q.front(); q.pop();
+                for (int v : adj[u]) {
+                    if (--deg[v] == 1)
+                       q.push(v);
+               }
+           }
+          }
+
+          // Remaining nodes are centers
+          while (!q.empty()) {
+             cout << q.front() + 1 << " ";
+               q.pop();
+          }
+          cout << "\n";
+          }
+
+
+
+
+         Diameter path ka middle node(s) hi tree ka center hota hai.
+         #include <bits/stdc++.h>
+         using namespace std;
+
+         pair<int, vector<int>> bfs(int start, vector<vector<int>> &adj) {
+         int n = adj.size();
+         vector<int> dist(n, -1), par(n, -1);
+         queue<int> q;
+         q.push(start);
+         dist[start] = 0;
+
+         int far = start;
+
+         while (!q.empty()) {
+            int u = q.front(); q.pop();
+            for (int v : adj[u]) {
+               if (dist[v] == -1) {
+                   dist[v] = dist[u] + 1;
+                   par[v] = u;
+                   q.push(v);
+                   if (dist[v] > dist[far])
+                    far = v;
+                }
+            }
+          }
+         return {far, par};
+       }
+
+       int main() {
+           ios::sync_with_stdio(false);
+           cin.tie(NULL);
+
+           int n;
+           cin >> n;
+           vector<vector<int>> adj(n);
+
+           for (int i = 0; i < n - 1; i++) {
+             int u, v;
+             cin >> u >> v;
+             u--; v--;
+             adj[u].push_back(v);
+             adj[v].push_back(u);
+           }
+
+              // 1st BFS
+           int u = bfs(0, adj).first;
+  
+              // 2nd BFS
+           auto res = bfs(u, adj);
+           int v = res.first;
+           vector<int> par = res.second;
+
+           // build diameter path
+           vector<int> path;
+           for (int x = v; x != -1; x = par[x])
+           path.push_back(x);
+           reverse(path.begin(), path.end());
+
+           int len = path.size();
+
+           // print center(s)
+           if (len % 2 == 1) {
+           cout << path[len / 2] + 1 << "\n";
+           } else {
+             cout << path[len / 2 - 1] + 1 << " "
+             << path[len / 2] + 1 << "\n";
+           }
+         }
+
+
+
+
+          Eccentricity of a node = maximum distance from that node to any other node.
+          Radius of a tree = minimum eccentricity among all nodes.
+          Tree center is the node(s) whose eccentricity equals the radius.
+          Diameter ↔ Radius relation:(If diameter is even → diameter = 2 × radius)
+          else If diameter is odd → diameter = 2 × radius + 1
+          If center’s eccentricity is not about diameter / 2, your diameter/center calculation is wrong.
+          Center minimizes eccentricity, radius is that minimum, and diameter ≈ 2 × radius.
+
+          A tree always has either one center or two centers — never more.
+          In a tree, the farthest node from any node v is always one of the diameter endpoints.
+
+
+         #include <bits/stdc++.h>
+         using namespace std;
+
+         vector<int> bfs(int start, vector<vector<int>>& adj) {
+         int n = adj.size();
+         vector<int> dist(n, -1);
+         queue<int> q;
+         q.push(start);
+         dist[start] = 0;
+
+         while (!q.empty()) {
+            int u = q.front(); q.pop();
+            for (int v : adj[u]) {
+               if (dist[v] == -1) {
+                   dist[v] = dist[u] + 1;
+                   q.push(v);
+               }
+            }
+          }
+           return dist;
+         }
+
+       int main() {
+         ios::sync_with_stdio(false);
+         cin.tie(nullptr);
+
+          int n;
+          cin >> n;
+
+        vector<vector<int>> adj(n);
+        for (int i = 0; i < n - 1; i++) {
+          int a, b;
+          cin >> a >> b;
+          --a; --b;
+          adj[a].push_back(b);
+          adj[b].push_back(a);
+        }
+
+         // Step 1: BFS from node 0
+         vector<int> d0 = bfs(0, adj);
+         int A = max_element(d0.begin(), d0.end()) - d0.begin();
+
+          // Step 2: BFS from A
+          vector<int> distA = bfs(A, adj);
+          int B = max_element(distA.begin(), distA.end()) - distA.begin();
+
+          // Step 3: BFS from B
+          vector<int> distB = bfs(B, adj);
+
+          // Step 4: Answer for each node
+          for (int i = 0; i < n; i++) {
+          cout << max(distA[i], distB[i]) << " ";
+        }
+         cout << "\n";
+       }
+       Tree me “for each node” type problems ko diameter endpoints ya rerooting se optimize kiya ja sakta hai.
+       Jab tree me “for each node, sum of distances” poocha ho, rerooting DP is mandatory — diameter tricks kaam nahi karte.
+       Jab for each aaye then use dp rerooting first or use diameter,har node se maximum distance ke case mein diameter socho 
+
+       #include <bits/stdc++.h>
+       using namespace std;
+
+       #define int long long
+
+       int n;
+       vector<vector<int>> g;
+       vector<int> sz, dp;
+
+       // First DFS: compute subtree sizes and dp[1]
+       void dfs1(int u, int p, int depth) {
+       sz[u] = 1;
+       dp[1] += depth;
+       for (int v : g[u]) {
+         if (v == p) continue;
+         dfs1(v, u, depth + 1);
+          sz[u] += sz[v];
+        }
+     }
+
+      // Second DFS: reroot DP
+      void dfs2(int u, int p) {
+       for (int v : g[u]) {
+           if (v == p) continue;
+           dp[v] = dp[u] - sz[v] + (n - sz[v]);
+           dfs2(v, u);
+       }
+     }
+
+     int32_t main() {
+        ios::sync_with_stdio(false);
+        cin.tie(nullptr);
+
+        cin >> n;
+        g.resize(n + 1);
+       sz.resize(n + 1);
+       dp.resize(n + 1);
+
+        for (int i = 0; i < n - 1; i++) {
+          int u, v;
+          cin >> u >> v;
+          g[u].push_back(v);
+          g[v].push_back(u);
+       }
+
+       dfs1(1, 0, 0);   // compute dp[1]
+       dfs2(1, 0);      // reroot to compute all dp[v]
+
+       for (int i = 1; i <= n; i++) {
+          cout << dp[i] << " ";
+       }
+       cout << "\n";
+      }
+      First DFS computes subtree info, second DFS reroots using size-based distance updates.
+
+
+
+     Compute distance sum for one root using DFS, then reroot the tree: when moving root from a node to its child, nodes in the child’s subtree get 1 closer and all others get 1 farther, updating the sum in O(1); repeating this gives all nodes’ distance sums in O(n) instead of O(n²).
+
+
+     Rerooting DP solves “answer-for-every-node-as-root” tree problems by computing the answer for one root and then updating it efficiently when moving the root to a child using a local update formula; this pattern is widely used for distance sums, subtree queries, and tree DP with changing roots.
+
+
+     When answers are needed for every node as root and moving root causes predictable changes, use rerooting DP.
+     Tree Diameter-->Two BFS/DP
+     Tree Distances-I-->Diameter endpoints
+     Tree Distances-II-->Rerooting DP
+     minimum max distance → think center
+     Trees = diameter + endpoints + rerooting DP → most distance problems solved efficiently
+
+
+
+    Common Mistakes
+    ❌ Diameter ke liye har node se BFS mat chalao → O(n²) ho jaata hai
+    👉 ✔️ Two-BFS use karo
+
+    ❌ Yeh mat socho ki diameter root se hi guzarta hai
+    👉 ✔️ Diameter tree me kahin bhi ho sakta hai
+
+    ❌ Tree Distances I me sirf ek endpoint mat lo
+    👉 ✔️ Har node ke liye dono diameter endpoints se distance ka max lo
+
+    ❌ Tree Distances II ko har node se BFS karke solve mat karo
+    👉 ✔️ Rerooting DP use karo, warna TLE aayega
+
+
 
 🔵Topic-5
 -->Distance sum from node 1 = subtree DP. Distance sum for all nodes = rerooting.
