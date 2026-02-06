@@ -282,4 +282,91 @@ int32_t main(){
 
 
 
-21.
+21.Check if the directed graph has exactly one SCC (then all cities are reachable); otherwise, pick two cities from different SCCs to show a route that is impossible.
+22.Find SCCs; if there is exactly one SCC, print YES, otherwise print NO and any two cities belonging to different SCCs to show unreachable travel.
+23.If the graph has one SCC print YES; otherwise print NO and output any two nodes that belong to different SCCs to show unreachable travel.
+24.
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<vector<int>> g, rg;
+vector<int> vis, comp;
+stack<int> st;
+
+void dfs1(int v){
+    vis[v]=1;
+    for(int u:g[v]){
+        if(!vis[u]) dfs1(u);
+    }
+    st.push(v);
+}
+
+void dfs2(int v,int c){
+    comp[v]=c;
+    for(int u:rg[v]){
+        if(comp[u]==-1) dfs2(u,c);
+    }
+}
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n,m;
+    cin>>n>>m;
+
+    g.assign(n,{});
+    rg.assign(n,{});
+
+    for(int i=0;i<m;i++){
+        int u,v;
+        cin>>u>>v;
+        u--; v--;
+        g[u].push_back(v);
+        rg[v].push_back(u);
+    }
+
+    vis.assign(n,0);
+    for(int i=0;i<n;i++){
+        if(!vis[i]) dfs1(i);
+    }
+
+    comp.assign(n,-1);
+    int scc=0;
+
+    while(!st.empty()){
+        int v=st.top(); st.pop();
+        if(comp[v]==-1){
+            dfs2(v,scc);
+            scc++;
+        }
+    }
+
+    if(scc==1){
+        cout<<"YES\n";
+    }else{
+        cout<<"NO\n";
+        int a=-1,b=-1;
+        for(int i=0;i<n;i++){
+            if(a==-1) a=i;
+            else if(comp[i]!=comp[a]){
+                b=i;
+                break;
+            }
+        }
+        cout<<a+1<<" "<<b+1<<"\n";
+    }
+}
+
+
+
+
+
+
+25.Self-loops SCC ko affect nahi karte, isolated nodes khud ek SCC hote hain, aur har node exactly ek SCC me hota hai.
+26.Self loops can be avoided.
+27.Kosaraju me visited reset karo, Tarjan me sirf on-stack nodes se low update karo—warna SCC galat ho jayenge.
+28.SCC tab use karo jab directed graph me cycles ho, mutually reachable nodes chahiye ho, graph ko DAG me compress karke DP/topo sort karna ho, ya 2-SAT / circular dependencies solve karni ho; DAG ya undirected graph me SCC ki zarurat nahi hoti.
+29.
