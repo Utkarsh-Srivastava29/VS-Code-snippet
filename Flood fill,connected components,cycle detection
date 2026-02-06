@@ -1,1 +1,506 @@
+1.Flood fill ek graph traversal hai jisme ek pixel se start karke same-color ke adjacent pixels ko DFS/BFS se spread kiya jata hai jab tak boundary ya different color na aa jaye.
+2.Grid me har unvisited land cell se DFS chalao, poora connected land mark karo, aur jitni baar DFS start ho wahi number of islands hota hai.
+3.Dependencies ko directed graph bana ke DFS chalao, aur agar current recursion path me koi node dobara mile to cycle hai, matlab tasks complete nahi ho sakte.(instack)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//State 0 means you have not touched this node yet 
+//State 1 means you are currently proceesing this node or its neighbours,it is in the recursion stack
+//State 2 means you are completely done with node and all it descendants
+DFS me 3 states use hote hain—0 unvisited, 1 visiting (recursion stack), 2 visited—and agar kisi node se state-1 neighbor mile to cycle detect ho jata hai.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+bool dfs(int u, vector<vector<int>>& g, vector<int>& vis) {
+    vis[u] = 1;  // mark as visiting
+    for (int v : g[u]) {
+        if (vis[v] == 1) return true;        // cycle found
+        “Jab tak koi branch true return nahi karti, hum us state se return nahi karte;
+        aur agar koi branch true nahi deti, to end me false return karte hain.”
+        if (vis[v] == 0 && dfs(v, g, vis)) 
+            return true;
+    }
+    vis[u] = 2;  // mark as finished
+    return false;
+}
+
+bool hasCycle(int n, vector<vector<int>>& edges) {
+    vector<vector<int>> g(n);
+    for (auto &e : edges)
+        g[e[0]].push_back(e[1]);  // directed edge
+
+    vector<int> vis(n, 0);
+    for (int i = 0; i < n; i++) {
+        if (vis[i] == 0 && dfs(i, g, vis))
+            return true;
+    }
+    return false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4.The following is more intutive so try to learn about the following
+#include <bits/stdc++.h>
+using namespace std;
+
+bool dfs(int u, vector<vector<int>>& g, vector<int>& vis, vector<int>& instack) {
+    vis[u] = 1;
+    instack[u] = 1;
+
+    for (int v : g[u]) {
+        if (!vis[v]) {
+            if (dfs(v, g, vis, instack))
+                return true;
+        }
+        else if (instack[v]) {
+            return true;  // cycle found
+        }
+    }
+
+    instack[u] = 0;  // remove from recursion stack
+    return false;
+}
+
+bool hasCycle(int n, vector<vector<int>>& edges) {
+    vector<vector<int>> g(n);
+    for (auto &e : edges)
+        g[e[0]].push_back(e[1]);  // directed edge
+
+    vector<int> vis(n, 0), instack(n, 0);
+
+    for (int i = 0; i < n; i++) {
+        if (!vis[i]) {
+            if (dfs(i, g, vis, instack))
+                return true;
+        }
+    }
+    return false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5.State = Visiting (1) → current path → back edge → cycle
+  State = Visited (2) → old, finished path → no cycle
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+6.Find the perrimeter of the grid
+#include <bits/stdc++.h>
+using namespace std;
+
+int islandPerimeter(vector<vector<int>>& grid) {
+    int n = grid.size(), m = grid[0].size();
+    int per = 0;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (grid[i][j] == 1) {
+                // up
+                if (i == 0 || grid[i-1][j] == 0) per++;
+                // down
+                if (i == n-1 || grid[i+1][j] == 0) per++;
+                // left
+                if (j == 0 || grid[i][j-1] == 0) per++;
+                // right
+                if (j == m-1 || grid[i][j+1] == 0) per++;
+            }
+        }
+    }
+    return per;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+7.#include <bits/stdc++.h>
+using namespace std;
+
+int islandPerimeter(vector<vector<int>>& grid) {
+    int n = grid.size(), m = grid[0].size();
+    int per = 0;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (grid[i][j] == 1) {
+                // up
+                if (i == 0 || grid[i-1][j] == 0) per++;
+                // down
+                if (i == n-1 || grid[i+1][j] == 0) per++;
+                // left
+                if (j == 0 || grid[i][j-1] == 0) per++;
+                // right
+                if (j == m-1 || grid[i][j+1] == 0) per++;
+            }
+        }
+    }
+    return per;
+}
+
+
+
+some improvement in the above in time complexity
+#include<bits/stdc++.h>
+using namespace std;
+int main(){
+  int perimeter=0;
+  for(int i=0;i<n;i++){
+    for(int j=0;j<m;j++){
+      perimeter=perimeter+4;
+      //yahan pe left left lete jao and do not take the right consideration also -=2 for left for the current cell and right for the left cell
+      if(i>0 and grid[i-1][j]=='1') perimeter-=2;
+      if(j>0 and grid[i][j-1]=='1') perimeter-=2;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+8.O(n*m)
+#include <bits/stdc++.h>
+using namespace std;
+
+void dfs(vector<vector<int>>& image, int r, int c, int oldColor, int newColor) {
+    int n = image.size();
+    int m = image[0].size();
+
+    if (r < 0 || c < 0 || r >= n || c >= m)
+        return;
+
+    if (image[r][c] != oldColor)
+        return;
+
+    image[r][c] = newColor;
+
+    dfs(image, r + 1, c, oldColor, newColor);
+    dfs(image, r - 1, c, oldColor, newColor);
+    dfs(image, r, c + 1, oldColor, newColor);
+    dfs(image, r, c - 1, oldColor, newColor);
+}
+
+vector<vector<int>> floodFill(vector<vector<int>>& image, int sr, int sc, int newColor) {
+    int oldColor = image[sr][sc];
+    if (oldColor != newColor) {
+        dfs(image, sr, sc, oldColor, newColor);
+    }
+    return image;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+9.
+Jab ek unvisited land cell ('1') mile, island count badhao aur turant DFS/BFS chala ke poori connected land ko visit karke '0' ya '2' se mark kar do.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+10.
+#include <bits/stdc++.h>
+using namespace std;
+
+void eraseIsland(vector<vector<char>>& grid, int r, int c) {
+    int n = grid.size(), m = grid[0].size();
+
+    if (r < 0 || c < 0 || r >= n || c >= m)
+        return;
+
+    if (grid[r][c] == '0')
+        return;
+
+    grid[r][c] = '0';  // sink the land
+
+    eraseIsland(grid, r + 1, c);
+    eraseIsland(grid, r - 1, c);
+    eraseIsland(grid, r, c + 1);
+    eraseIsland(grid, r, c - 1);
+}
+
+int numIslands(vector<vector<char>>& grid) {
+    int n = grid.size(), m = grid[0].size();
+    int count = 0;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (grid[i][j] == '1') {
+                count++;
+                eraseIsland(grid, i, j);
+            }
+        }
+    }
+    return count;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+11.Har land cell ke 4 edges hote hain, har land neighbor ek edge hide kar deta hai, aur kyunki sirf ek island hai isliye visited track karne ki zarurat nahi padti.
+12.Island Perimeter sikhata hai ki har grid problem me DFS/BFS zaroori nahi hota—kabhi-kabhi simple scan se local properties count karke hi answer mil jata hai.
+13.DFS is not just for traversal; it can return values, allowing you to compute things like area, sum, height, or cost over a connected component.
+#include <bits/stdc++.h>
+using namespace std;
+
+int dfs(int i, int j, vector<vector<int>>& grid) {
+    int n = grid.size(), m = grid[0].size();
+
+    if (i < 0 || j < 0 || i >= n || j >= m || grid[i][j] == 0)
+        return 0;
+
+    grid[i][j] = 0;  // mark visited
+
+    return 1
+         + dfs(i + 1, j, grid)
+         + dfs(i - 1, j, grid)
+         + dfs(i, j + 1, grid)
+         + dfs(i, j - 1, grid);
+}
+
+int maxAreaOfIsland(vector<vector<int>>& grid) {
+    int n = grid.size(), m = grid[0].size();
+    int ans = 0;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (grid[i][j] == 1) {
+                ans = max(ans, dfs(i, j, grid));
+            }
+        }
+    }
+    return ans;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+14.So far DFS/BFS solved connectivity problems; next you’ll learn algorithms for costs (shortest path) and structure (bipartite graphs).
