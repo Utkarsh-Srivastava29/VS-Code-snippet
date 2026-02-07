@@ -369,4 +369,14 @@ int main(){
 26.Self loops can be avoided.
 27.Kosaraju me visited reset karo, Tarjan me sirf on-stack nodes se low update karo—warna SCC galat ho jayenge.
 28.SCC tab use karo jab directed graph me cycles ho, mutually reachable nodes chahiye ho, graph ko DAG me compress karke DP/topo sort karna ho, ya 2-SAT / circular dependencies solve karni ho; DAG ya undirected graph me SCC ki zarurat nahi hoti.
-29.
+29.Pehle SCC nikaalo; agar a aur b same SCC me hain to answer YES, warna condensation DAG me scc[a] → scc[b] ka path BFS/DFS se check karo (multiple queries ke liye efficient).
+30.SCCs work on directed graphs. Bridges and articulation points work on undirected graphs. They solve different problems.
+31.Real-world directed graphs me ek strong middle group hota hai (SCC), aur uske aage-peeche one-way nodes hote hain — isi ko bow-tie structure kehte hain.
+32.Kosaraju aur Tarjan dono SCC algorithms ka time complexity O(V + E) hota hai; Kosaraju me 2 DFS + transpose graph, Tarjan me 1 DFS with bookkeeping, aur space complexity O(V) hoti hai.
+33.SCC algorithms (Kosaraju / Tarjan) ko graph ke size ke proportional memory chahiye — na zyada, na kam.
+34.Time aur space dono SCC ke liye O(V+E) hote hain.
+35.SCC batata hai “yahan cycles hain”, DFS batata hai “ye ek cycle hai” — lekin DFS saare cycles nahi nikaalta.If a directed graph contains a cycle, all nodes in that cycle belong to the same SCC. To detect if the graph has any cycle: Run SCC detection. If any SCC contains more than one node, the graph has at least one cycle.
+36.Use topo sort finally only and not on the original graph 
+37.If a scc has more than one node then definitely it has a cycle.
+
+36.
