@@ -1,0 +1,13 @@
+1.Spague-grundy theory,games with cycles,cat and mouse 
+2.Network security = attacker and defender playing a game on a graph of system states.
+3.Game theory me jeet ka matlab hai opponent ko 0 pe dhakel dena.
+  Haan → Grundy ≠ 0 → winning
+  Nahi → Grundy = 0 → losing
+4.Game on graph = har node ek state hai, token edges pe chalta hai, DAG me jeet-haar easily nikalte hain, cycle ho to special game theory lagti hai.
+5.Graphs with cycles need different techniques. The goal is usually to reach a target vertex or avoid getting stuck.Some games have additional win conditions based on vertex properties.
+6.Vertex properties = node ki khas baat
+  ye safe node hai
+  ye danger node hai
+  ye goal node hai
+  ye trap node hai
+The above will decide whether we are in a trap or we are free and that needs to be considered.
