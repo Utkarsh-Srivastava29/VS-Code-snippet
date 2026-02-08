@@ -3,7 +3,7 @@
 3.Game theory me jeet ka matlab hai opponent ko 0 pe dhakel dena.
   Haan → Grundy ≠ 0 → winning
   Nahi → Grundy = 0 → losing
-4.Game on graph = har node ek state hai, token edges pe chalta hai, DAG me jeet-haar easily nikalte hain, cycle ho to special game theory lagti hai.
+4.Game on graph = har node ek state hai, token edges pe chalta hai, DAG me jeet-haar easily n11ikalte hain, cycle ho to special game theory lagti hai.
 5.Graphs with cycles need different techniques. The goal is usually to reach a target vertex or avoid getting stuck.Some games have additional win conditions based on vertex properties.
 6.Vertex properties = node ki khas baat
   ye safe node hai
@@ -11,3 +11,305 @@
   ye goal node hai
   ye trap node hai
 The above will decide whether we are in a trap or we are free and that needs to be considered.
+7.A position is winning if the player whose turn it can force a win with perfect play.
+  A position is losing if all the possible moves lead to winning position for the opponent.
+  The definition is recursive:start from terminal position,then work backward.If you can move to any losing position,your current position is winning.If every move leads to a winning position fot the opponent then your current position is losing.
+8.Terminal positions are game states where the game ends and no further moves are possible.
+  Whether a terminal position is a win or a loss depends on the game’s rules.
+  Identifying terminal positions is the first step in analyzing a game.
+  They act as base cases when working backward through the game tree.
+  Examples:
+  No opponent pieces left in a capture game.
+  Reaching a target node in a graph traversal game.
+9.On a DAG, game positions can be solved using backward induction.
+  Start from terminal vertices (no outgoing edges).
+  Process vertices in reverse topological order.
+  For each vertex:
+  If any move leads to a losing position → mark it winning.
+  If all moves lead to winning positions → mark it losing.
+10.Agr ye losing position pe jaa rha hai then mark this current node as winning position and if it is going to a winning position then this is a losing position.
+11.DAGs are simple to analyze because they have no cycles.
+   You only need:
+   A way to mark positions as winning or losing.
+   A way to process vertices in reverse topological order.
+   Use a boolean array: true = winning, false = losing.
+   Process a vertex after all its successors are processed.
+   Rule:
+   If any outgoing edge leads to a losing position → mark the vertex winning.
+   Otherwise → mark it losing.
+12.A position is W (winning) if there exists at least one move that puts your opponent in an L (losing) position. Conversely, a position is L if every available move leads to a W position for your opponent. You only need one good move to win.
+
+
+
+
+13.O(n*(n+m))
+You are given a directed graph with n nodes and m edges.
+Each node represents a game position.
+If there is an edge u → v, a player can move from position u to position v.
+Two players play alternately.
+If a player has no legal move on their turn, they lose (normal play rule).
+Both players play optimally.
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<int>> g(n);
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        cin >> u >> v;
+        g[u].push_back(v);
+    }
+
+    // 0 = unknown/draw, 1 = win, -1 = lose
+    vector<int> state(n, 0);
+
+    // example: terminal nodes are losing
+    for (int i = 0; i < n; i++) {
+        if (g[i].empty()) {
+            state[i] = -1;
+        }
+    }
+
+    bool changed = true;
+
+    while (changed) {
+        changed = false;
+
+        for (int u = 0; u < n; u++) {
+            if (state[u] != 0) continue;
+
+            bool canWin = false;
+            bool allWin = true;
+
+            for (int v : g[u]) {
+                if (state[v] == -1) canWin = true;
+                if (state[v] != 1) allWin = false;
+            }
+
+            if (canWin) {
+                state[u] = 1;
+                changed = true;
+            } else if (allWin) {
+                state[u] = -1;
+                changed = true;
+            }
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        if (state[i] == 1) cout << "WIN\n";
+        else if (state[i] == -1) cout << "LOSE\n";
+        else cout << "DRAW\n";
+    }
+}
+
+
+
+
+
+
+
+14.Fixed-point iteration means you keep updating each position’s state (win / lose / draw) again and again using the rules, until no state changes anymore.
+15.Fixed-point iteration = keep applying the rules until applying them again makes no difference.
+16.O(n^3)-->Time complexity,O(n^2)-->space complexity
+
+
+
+
+
+
+
+#include <bits/stdc++.h>          // Includes all standard C++ libraries
+using namespace std;              // Allows use of std names directly
+
+/*
+ Game result states:
+ DRAW       → game can continue forever
+ MOUSE_WIN  → mouse can force a win
+ CAT_WIN    → cat can force a win
+*/
+static const int DRAW = 0;        // State value for draw
+static const int MOUSE_WIN = 1;   // State value when mouse wins
+static const int CAT_WIN = 2;     // State value when cat wins
+
+/*
+ Turn indicator:
+ MOUSE_TURN → mouse moves
+ CAT_TURN   → cat moves
+*/
+static const int MOUSE_TURN = 0;  // Mouse's turn
+static const int CAT_TURN = 1;    // Cat's turn
+
+// Function that solves the Cat and Mouse game
+int catMouseGame(vector<vector<int>>& graph) {
+
+    int n = graph.size();         // Number of nodes in the graph
+
+    // result[mouse][cat][turn] stores the outcome of that state
+    vector<vector<vector<int>>> result(
+        n, vector<vector<int>>(n, vector<int>(2, DRAW))
+    );
+
+    // degree[mouse][cat][turn] = number of legal moves remaining
+    vector<vector<vector<int>>> degree(
+        n, vector<vector<int>>(n, vector<int>(2, 0))
+    );
+
+    // Queue for reverse BFS (processing known states backward)
+    queue<tuple<int,int,int>> q;
+
+    // Initialize degree counts for every possible state
+    for (int mouse = 0; mouse < n; mouse++) {
+        for (int cat = 0; cat < n; cat++) {
+
+            // Mouse can move to all neighbors of its current node
+            degree[mouse][cat][MOUSE_TURN] = graph[mouse].size();
+
+            // Cat can move to all neighbors of its current node
+            degree[mouse][cat][CAT_TURN] = graph[cat].size();
+
+            // Cat is not allowed to move to hole (node 0)
+            for (int v : graph[cat]) {
+                if (v == 0) {
+                    degree[mouse][cat][CAT_TURN]--;  // Remove illegal move
+                }
+            }
+        }
+    }
+
+    // Base Case 1: Mouse reaches the hole (node 0)
+    for (int cat = 1; cat < n; cat++) {
+
+        // Mouse wins no matter whose turn it is
+        result[0][cat][MOUSE_TURN] = MOUSE_WIN;
+        result[0][cat][CAT_TURN] = MOUSE_WIN;
+
+        // Push these resolved states into the queue
+        q.push({0, cat, MOUSE_TURN});
+        q.push({0, cat, CAT_TURN});
+    }
+
+    // Base Case 2: Cat catches mouse (same node)
+    for (int pos = 1; pos < n; pos++) {
+
+        // Cat wins immediately
+        result[pos][pos][MOUSE_TURN] = CAT_WIN;
+        result[pos][pos][CAT_TURN] = CAT_WIN;
+
+        // Push resolved states into the queue
+        q.push({pos, pos, MOUSE_TURN});
+        q.push({pos, pos, CAT_TURN});
+    }
+
+    // Reverse BFS to propagate results backward
+    while (!q.empty()) {
+
+        // Get the front state from the queue
+        auto [mouse, cat, turn] = q.front();
+        q.pop();
+
+        // Current resolved result
+        int curResult = result[mouse][cat][turn];
+
+        // If current state was mouse's turn
+        if (turn == MOUSE_TURN) {
+
+            // Parent states must have been cat's turn
+            for (int prevCat : graph[cat]) {
+
+                // Cat cannot move into hole
+                if (prevCat == 0) continue;
+
+                // Skip if already decided
+                if (result[mouse][prevCat][CAT_TURN] != DRAW) continue;
+
+                // If cat can force a win, parent is CAT_WIN
+                if (curResult == CAT_WIN) {
+                    result[mouse][prevCat][CAT_TURN] = CAT_WIN;
+                    q.push({mouse, prevCat, CAT_TURN});
+                }
+                // Otherwise reduce remaining legal moves
+                else {
+                    degree[mouse][prevCat][CAT_TURN]--;
+                    // If no safe moves left, mouse wins
+                    if (degree[mouse][prevCat][CAT_TURN] == 0) {
+                        result[mouse][prevCat][CAT_TURN] = MOUSE_WIN;
+                        q.push({mouse, prevCat, CAT_TURN});
+                    }
+                }
+            }
+        }
+        // If current state was cat's turn
+        else {
+
+            // Parent states must have been mouse's turn
+            for (int prevMouse : graph[mouse]) {
+
+                // Skip if already decided
+                if (result[prevMouse][cat][MOUSE_TURN] != DRAW) continue;
+
+                // If mouse can force a win, parent is MOUSE_WIN
+                if (curResult == MOUSE_WIN) {
+                    result[prevMouse][cat][MOUSE_TURN] = MOUSE_WIN;
+                    q.push({prevMouse, cat, MOUSE_TURN});
+                }
+                // Otherwise reduce remaining legal moves
+                else {
+                    degree[prevMouse][cat][MOUSE_TURN]--;
+                    // If no safe moves left, cat wins
+                    if (degree[prevMouse][cat][MOUSE_TURN] == 0) {
+                        result[prevMouse][cat][MOUSE_TURN] = CAT_WIN;
+                        q.push({prevMouse, cat, MOUSE_TURN});
+                    }
+                }
+            }
+        }
+    }
+
+    // Return result of initial state:
+    // Mouse at node 1, Cat at node 2, Mouse moves first
+    return result[1][2][MOUSE_TURN];
+}
+
+int main() {
+
+    int n;                         // Number of nodes
+    cin >> n;                      // Read number of nodes
+
+    vector<vector<int>> graph(n);  // Adjacency list
+
+    // Read graph
+    for (int i = 0; i < n; i++) {
+        int k;                     // Number of edges from node i
+        cin >> k;
+        graph[i].resize(k);
+        for (int j = 0; j < k; j++) {
+            cin >> graph[i][j];    // Read neighbor
+        }
+    }
+
+    // Solve the game
+    int ans = catMouseGame(graph);
+
+    // Print result
+    if (ans == MOUSE_WIN) cout << "Mouse Wins\n";
+    else if (ans == CAT_WIN) cout << "Cat Wins\n";
+    else cout << "Draw\n";
+
+    return 0;                      // End of program
+}
+
+
+
+
+
+
+
+
+17.
