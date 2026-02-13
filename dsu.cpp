@@ -99,6 +99,17 @@ Point 5.If you have a set of items that are all connected to each other (a cliqu
 
 
 
+Point 6.In case of dsu with rank we can say that using induction we can prove that we need 1 for 2^0(base case) and 2^r(induction hypothesis) for rank 2^r+2^r final for the final part that is 2^(r+1)
 
+
+
+
+
+
+
+
+
+
+Point 7.Union by rank has the height of the tree equal to rank withour path compression else the height changes 
 
 
