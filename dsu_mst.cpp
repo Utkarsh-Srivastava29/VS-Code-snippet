@@ -227,4 +227,464 @@ When the graph is stored a adjacency list then use prims and when want a simple 
 
 
 
+11.
+Agar graph disconnected hai, to single MST exist nahi karta.
 
+Is case me result hota hai Minimum Spanning Forest:
+
+har connected component ka apna MST hota hai.
+
+Kruskal’s algorithm automatically is case ko handle kar leta hai:
+
+bas n−1 se kam edges add hongi
+
+har component apna tree bana lega.
+
+Prim’s algorithm sirf starting node ke component ko cover karta hai.
+
+Agar Prim se poora forest chahiye:
+
+Prim ko har component ke ek node se alag-alag run karo.
+
+
+
+
+
+
+
+
+
+12.when we want mst for each connected component then the prim's need to be run again and again as it starts from the starting node and hence we need to update that accordingly.
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<pair<int,int>>> adj(n);
+    for(int i = 0; i < m; i++) {
+        int u, v, w;
+        cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+
+    vector<bool> visited(n, false);
+    priority_queue<
+        tuple<int,int,int>,
+        vector<tuple<int,int,int>>,
+        greater<>
+    > pq;
+
+    vector<tuple<int,int,int>> forest; // edges of spanning forest
+    int totalCost = 0;
+
+    // Run Prim from every unvisited node
+    for(int start = 0; start < n; start++) {
+
+        if(visited[start]) continue;
+
+        // start a new component
+        visited[start] = true;
+
+        for(auto [v, w] : adj[start]) {
+            pq.push({w, start, v});
+        }
+
+        while(!pq.empty()) {
+            auto [w, u, v] = pq.top();
+            pq.pop();
+
+            if(visited[v]) continue;
+
+            visited[v] = true;
+            forest.push_back({u, v, w});
+            totalCost += w;
+
+            for(auto [next, wt] : adj[v]) {
+                if(!visited[next]) {
+                    pq.push({wt, v, next});
+                }
+            }
+        }
+    }
+
+    cout << "Total Cost of Spanning Forest: " << totalCost << "\n";
+    cout << "Edges in Spanning Forest:\n";
+    for(auto [u, v, w] : forest) {
+        cout << u << " " << v << " " << w << "\n";
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+13.We can go with the prims because we have not been edges and they are dense and we can calculate them on the fly
+//O(n*n)
+#include <bits/stdc++.h>
+using namespace std;
+
+int manhattan(vector<int>& a, vector<int>& b) {
+    return abs(a[0] - b[0]) + abs(a[1] - b[1]);
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<vector<int>> points(n, vector<int>(2));
+    for (int i = 0; i < n; i++) {
+        cin >> points[i][0] >> points[i][1];
+    }
+
+    vector<int> minDist(n, INT_MAX);
+    vector<bool> inMST(n, false);
+
+    minDist[0] = 0;   // start from point 0
+    int totalCost = 0;
+
+    for (int i = 0; i < n; i++) {
+        int u = -1;
+
+        // pick closest non-MST point
+        for (int j = 0; j < n; j++) {
+            if (!inMST[j] && (u == -1 || minDist[j] < minDist[u])) {
+                u = j;
+            }
+        }
+
+        inMST[u] = true;
+        totalCost += minDist[u];
+
+        // update distances
+        for (int v = 0; v < n; v++) {
+            if (!inMST[v]) {
+                int cost = manhattan(points[u], points[v]);
+                minDist[v] = min(minDist[v], cost);
+            }
+        }
+    }
+
+    cout << totalCost << "\n";
+    return 0;
+}
+
+
+
+
+
+
+
+
+14.
+Use Prim when the graph is dense or complete and edges are computed on demand.
+Use Kruskal when the graph is sparse, edges are explicitly given, or when you need a spanning forest.
+
+
+
+
+
+
+
+
+
+15.https://leetcode.com/problems/min-cost-to-connect-all-points/description/
+#include <bits/stdc++.h>
+using namespace std;
+
+int manhattan(vector<int>& a, vector<int>& b) {
+    return abs(a[0] - b[0]) + abs(a[1] - b[1]);
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<vector<int>> points(n, vector<int>(2));
+    for (int i = 0; i < n; i++) {
+        cin >> points[i][0] >> points[i][1];
+    }
+
+    vector<bool> visited(n, false);
+    priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
+
+    pq.push({0, 0});   // (cost, node)
+    int totalCost = 0;
+
+    while (!pq.empty()) {
+        auto [cost, u] = pq.top();
+        pq.pop();
+
+        if (visited[u]) continue;
+
+        visited[u] = true;
+        totalCost += cost;
+
+        // generate edges on-the-fly
+        for (int v = 0; v < n; v++) {
+            if (!visited[v]) {
+                int dist = manhattan(points[u], points[v]);
+                pq.push({dist, v});
+            }
+        }
+    }
+
+    cout << totalCost << "\n";
+    return 0;
+}
+
+
+
+
+
+16.
+MST algorithms also work on complete graphs if you generate edges on demand.
+
+Prim’s algorithm is preferable when creating all edges beforehand is too costly in time or memory.
+
+Compute edge weights on the fly to save memory—this is key for geometric MST problems and is widely used in clustering and network design.
+
+
+
+
+
+
+
+17.Component detection and merging are the core concepts of dsu union find.
+
+
+
+
+
+
+
+
+
+18.Distinct weights ⇒ unique MST; equal weights ⇒ MST may not be unique.
+
+
+
+
+
+19.
+#include <bits/stdc++.h>
+using namespace std;
+
+/*
+ DSU (Disjoint Set Union) / Union-Find
+ Used for building the MST with Kruskal's algorithm
+*/
+struct DSU {
+    vector<int> parent, rankv;
+
+    DSU(int n) : parent(n), rankv(n, 0) {
+        // initially each node is its own parent
+        iota(parent.begin(), parent.end(), 0);
+    }
+
+    // find with path compression
+    int find(int x) {
+        if (parent[x] == x) return x;
+        return parent[x] = find(parent[x]);
+    }
+
+    // union by rank
+    bool unite(int a, int b) {
+        a = find(a);
+        b = find(b);
+        if (a == b) return false;   // already connected
+
+        if (rankv[a] < rankv[b]) swap(a, b);
+        parent[b] = a;
+        if (rankv[a] == rankv[b]) rankv[a]++;
+        return true;
+    }
+};
+
+/*
+ For LCA + max-edge query
+ LOG = log2(max nodes)
+*/
+static const int LOG = 20;
+
+/*
+ adj[u] = {v, weight} → MST adjacency list
+*/
+vector<vector<pair<int,int>>> adj;
+
+/*
+ depth[u] = depth of node u in MST tree
+ up[k][u] = 2^k-th ancestor of u
+ mx[k][u] = maximum edge weight from u to up[k][u]
+*/
+vector<int> depth;
+int up[LOG][100005];
+int mx[LOG][100005];
+
+/*
+ DFS to initialize:
+ - depth
+ - immediate parent (up[0])
+ - edge weight to parent (mx[0])
+*/
+void dfs(int u, int parent, int w) {
+    up[0][u] = parent;
+    mx[0][u] = w;
+
+    for (auto [v, wt] : adj[u]) {
+        if (v == parent) continue;
+        depth[v] = depth[u] + 1;
+        dfs(v, u, wt);
+    }
+}
+
+/*
+ Finds the maximum edge weight on the path between u and v in MST
+ Uses binary lifting (LCA technique)
+*/
+int maxEdgeOnPath(int u, int v) {
+    int ans = 0;
+
+    // make u and v at same depth
+    if (depth[u] < depth[v]) swap(u, v);
+
+    int diff = depth[u] - depth[v];
+    for (int i = 0; i < LOG; i++) {
+        if (diff & (1 << i)) {
+            ans = max(ans, mx[i][u]);
+            u = up[i][u];
+        }
+    }
+
+    // if same node, done
+    if (u == v) return ans;
+
+    // lift both nodes up until LCA
+    for (int i = LOG - 1; i >= 0; i--) {
+        if (up[i][u] != up[i][v]) {
+            ans = max(ans, mx[i][u]);
+            ans = max(ans, mx[i][v]);
+            u = up[i][u];
+            v = up[i][v];
+        }
+    }
+
+    // last step to LCA
+    ans = max(ans, mx[0][u]);
+    ans = max(ans, mx[0][v]);
+
+    return ans;
+}
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    /*
+     edges[i] = {u, v, w}
+    */
+    vector<array<int,3>> edges(m);
+    for (int i = 0; i < m; i++)
+        cin >> edges[i][0] >> edges[i][1] >> edges[i][2];
+
+    // sort edges by weight for Kruskal
+    sort(edges.begin(), edges.end(),
+         [](auto &a, auto &b) {
+             return a[2] < b[2];
+         });
+
+    DSU dsu(n);
+    adj.assign(n, {});
+
+    // marks whether edge is in MST
+    vector<bool> inMST(m, false);
+
+    long long mstCost = 0;
+    int usedEdges = 0;
+
+    /*
+     Step 1: Build MST using Kruskal
+    */
+    for (int i = 0; i < m; i++) {
+        auto [u, v, w] = edges[i];
+        if (dsu.unite(u, v)) {
+            inMST[i] = true;
+            mstCost += w;
+            usedEdges++;
+
+            // add edge to MST adjacency list
+            adj[u].push_back({v, w});
+            adj[v].push_back({u, w});
+        }
+    }
+
+    // if MST does not exist
+    if (usedEdges != n - 1) {
+        cout << "No MST exists\n";
+        return 0;
+    }
+
+    /*
+     Step 2: Prepare LCA + max edge tables
+    */
+    depth.assign(n, 0);
+    dfs(0, -1, 0);
+
+    // binary lifting preprocessing
+    for (int i = 1; i < LOG; i++) {
+        for (int v = 0; v < n; v++) {
+            if (up[i-1][v] == -1) {
+                up[i][v] = -1;
+                mx[i][v] = mx[i-1][v];
+            } else {
+                up[i][v] = up[i-1][ up[i-1][v] ];
+                mx[i][v] = max(mx[i-1][v],
+                               mx[i-1][ up[i-1][v] ]);
+            }
+        }
+    }
+
+    /*
+     Step 3: Try replacing one MST edge using each non-MST edge
+     and compute second best MST
+    */
+    long long secondBest = LLONG_MAX;
+
+    for (int i = 0; i < m; i++) {
+        if (inMST[i]) continue;
+
+        auto [u, v, w] = edges[i];
+
+        // find maximum edge on MST path between u and v
+        int maxEdge = maxEdgeOnPath(u, v);
+
+        // candidate MST cost
+        long long candidate = mstCost + w - maxEdge;
+
+        if (candidate > mstCost)
+            secondBest = min(secondBest, candidate);
+    }
+
+    cout << secondBest << "\n";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+20.
