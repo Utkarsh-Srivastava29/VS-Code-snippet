@@ -687,4 +687,112 @@ int main() {
 
 
 
-20.
+20.O(k · E log E)
+#include <bits/stdc++.h>
+using namespace std;
+
+/* ---------- DSU ---------- */
+struct DSU {
+    vector<int> p;
+    DSU(int n) : p(n) { iota(p.begin(), p.end(), 0); }
+    int find(int x) { return p[x] == x ? x : p[x] = find(p[x]); }
+    bool unite(int a, int b) {
+        a = find(a); b = find(b);
+        if (a == b) return false;
+        p[b] = a;
+        return true;
+    }
+};
+
+/* ---------- Build MST while skipping forbidden edges ---------- */
+long long buildMST(int n, vector<array<int,3>>& edges,
+                   set<int>& forbid, vector<int>& used) {
+    DSU dsu(n);
+    long long cost = 0;
+    used.clear();
+
+    for (int i = 0; i < edges.size(); i++) {
+        if (forbid.count(i)) continue;
+        auto [w,u,v] = edges[i];
+        if (dsu.unite(u,v)) {
+            cost += w;
+            used.push_back(i);
+        }
+    }
+    return (used.size() == n-1 ? cost : LLONG_MAX);
+}
+
+/* ---------- k-th MST ---------- */
+long long kthMST(int n, vector<array<int,3>> edges, int k) {
+    sort(edges.begin(), edges.end());   // by weight
+
+    using State = pair<long long, pair<set<int>, vector<int>>>;
+    priority_queue<State, vector<State>, greater<State>> pq;
+
+    set<int> empty;
+    vector<int> used;
+    long long first = buildMST(n, edges, empty, used);
+    if (first == LLONG_MAX) return -1;
+
+    pq.push({first, {empty, used}});
+
+    for (int i = 1; i < k; i++) {
+        auto [cost, st] = pq.top(); pq.pop();
+        auto forbid = st.first;
+        auto mstEdges = st.second;
+
+        for (int e : mstEdges) {
+            set<int> nf = forbid;
+            nf.insert(e);
+            vector<int> nu;
+            long long nc = buildMST(n, edges, nf, nu);
+            if (nc != LLONG_MAX)
+                pq.push({nc, {nf, nu}});
+        }
+    }
+    return pq.top().first;
+}
+
+/* ---------- Example ---------- */
+int main() {
+    int n = 4, k = 3;
+    vector<array<int,3>> edges = {
+        {1,0,1}, {2,1,2}, {3,2,3}, {4,0,3}, {5,0,2}
+    };
+    cout << kthMST(n, edges, k) << "\n";
+}
+
+
+
+
+
+
+
+
+21.
+MSTs are widely used in network design (roads, cables, pipelines) to connect all nodes at the minimum total cost.
+
+In clustering, cutting the largest-weight edges of an MST helps split data into clusters (single-linkage clustering).
+
+MST algorithms are also used as building blocks in approximation algorithms for NP-hard problems, such as the Traveling Salesman Problem (TSP).
+
+
+
+
+
+
+
+
+
+
+22.Travelling salesman problem is NP-hard.
+
+
+
+
+
+
+
+
+
+23.Prims ke liye alag alag component ke liye hamein loop chalana pdega but for the case of the different spanning tree of different connected components krushkal will be beneficial
