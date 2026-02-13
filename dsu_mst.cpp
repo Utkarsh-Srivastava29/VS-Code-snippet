@@ -113,3 +113,118 @@ Point 6.In case of dsu with rank we can say that using induction we can prove th
 Point 7.Union by rank has the height of the tree equal to rank withour path compression else the height changes 
 
 
+
+
+
+
+
+
+
+
+
+
+Spanning Tree:-
+1.A spanning tree is a subgraph that connects all the nodes using exactly n-1 edges and gives the maximum connectivity.No cycle is allowed.Remove an edge and the graph becomes disconnected.This is the foundation of the mst.
+    
+2.A Minimum Spanning Tree (MST) connects all nodes of a graph with minimum possible total edge weight. If multiple spanning trees exist, the MST is the cheapest one. It’s useful for problems like connecting cities at the lowest construction cost.
+An MST is not always unique—when edges have equal weights, multiple MSTs can have the same total cost.
+    
+3.Cut Property kehta hai ki agar graph ko do groups me baant do, to in dono groups ko jodne wali sabse sasti edge hamesha kisi na kisi Minimum Spanning Tree (MST) ka hissa hoti hai.
+  Iska matlab hai ki is edge ko choose karna safe hota hai.
+  Isi rule par Kruskal aur Prim algorithms kaam karte hain.
+    
+4.Kisi bhi cycle me sabse heavy edge kabhi bhi MST ka hissa nahi hoti (jab tak weights equal na hon).
+  Isliye aisi edge ko safe tarike se hata sakte hain.
+  Ye rule MST algorithms ko samajhne aur galat edges ko remove karne me help karta hai.
+    
+5.The time complexity of krushkal algorithm is ElogE.
+  So the bottleneck is sorting. If edges are already sorted, Kruskal runs in O(Ealpha(V)) where alpha is the inverse ackermann function.Space is O(V).
+
+6.Prim ek node se shuru hota hai aur har step pe blob ke bahar ka sabse paas (cheapest) node andar kheench leta hai.
+
+7.
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<pair<int,int>>> adj(n);
+    for(int i = 0; i < m; i++) {
+        int u, v, w;
+        cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+
+    vector<bool> inMST(n, false);
+    priority_queue<array<int,3>, vector<array<int,3>>, greater<>> pq;
+
+    // (weight, node, parent)
+    pq.push({0, 0, -1});
+
+    int mstCost = 0;
+    vector<pair<int,int>> mstEdges;
+
+    while(!pq.empty()) {
+        auto [wt, u, parent] = pq.top();
+        pq.pop();
+
+        if(inMST[u]) continue;
+
+        inMST[u] = true;
+        mstCost += wt;
+
+        if(parent != -1) {
+            mstEdges.push_back({parent, u});
+        }
+
+        for(auto [v, w] : adj[u]) {
+            if(!inMST[v]) {
+                pq.push({w, v, u});
+            }
+        }
+    }
+
+    cout << "MST Cost: " << mstCost << "\n";
+    cout << "Edges in MST:\n";
+    for(auto [u, v] : mstEdges) {
+        cout << u << " " << v << "\n";
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+8.
+Prim’s algorithm runs in O(E log V) using a binary heap, which is simple and efficient for most cases.
+With a Fibonacci heap, it can run in O(E + V log V), which is better for dense graphs.
+For sparse graphs (E ≈ V), Prim and Kruskal perform similarly, while for dense graphs (E ≈ V²), Prim is usually faster.
+The space complexity is O(V).
+
+
+
+
+
+
+
+9.
+When the graph is stored a adjacency list then use prims and when want a simple implementation we can go with kruskal also.Use krushkal when the graph is already sorted because then we do not need to use the extra time complexity for priority queue.
+
+
+
+
+
+
+
+
+10.Prims works better when we want to have it for the specific starting node.
+
+
+
+
