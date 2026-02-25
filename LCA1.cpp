@@ -856,7 +856,9 @@ There are some nodes marked zero or 1 and some are marked as 0 and  we are findi
 41.Weighted Binary Lifting extends LCA by storing aggregated path information (like max edge) for every 2^i jump, allowing path queries in O(log n).
 42.Only switch to Euler tour if you are certain time limit requires O(1) queries.
 43.Common LCA mistakes include not handling ancestor cases, using wrong stopping condition while climbing, and indexing errors.
-44.
+44.Common LCA mistakes include skipping the ancestor case check, using incorrect stopping condition while climbing, and mishandling indexing.
+45.LCA can be extended to solve advanced tree queries like k-th ancestor, path median, and path updates (via HLD), making it a powerful tree toolkit.
+
 
 
 
