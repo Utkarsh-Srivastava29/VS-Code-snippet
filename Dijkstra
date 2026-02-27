@@ -1,0 +1,347 @@
+1.Weighted graph ke liye use karte hain:
+ 👉 Dijkstra's Algorithm
+ Kyuki wo minimum total weight track karta hai,
+ na ki edges count.
+
+
+
+
+2.BFS finds shortest paths when all edges have weight 1. With varying weights, you need Dijkstra. It always picks the closest unvisited node, ensuring you process nodes in order of their shortest distance from the source.
+
+
+3.Hamesha sabse chhota distance wala unfinished node process karo.Ye hi greedy idea hai.
+
+
+4.BFS: minimum edges
+  Dijkstra: minimum total weight
+
+  Greedy idea:
+  Closest unfinished node first.
+
+
+
+5.vector<long long> dist(n+1, 1e18);
+dist[start] = 0;
+
+priority_queue<
+    pair<long long,int>,
+    vector<pair<long long,int>>,
+    greater<pair<long long,int>>
+> pq;
+
+pq.push({0, start});
+
+
+dist array = current best answers
+priority queue = next closest node choose karne ke liye
+
+Sabko infinity do, start ko zero do, aur min-heap me start daal do.
+
+
+
+
+
+
+
+6.priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq
+Alternatively, push (-distance, node) and negate when you pop.
+while (!pq.empty()) {
+
+    auto [d, u] = pq.top();
+    pq.pop();
+
+    if (visited[u]) continue;
+
+    visited[u] = true;
+
+    for (auto [v, w] : adj[u]) {
+
+        if (dist[u] + w < dist[v]) {
+
+            dist[v] = dist[u] + w;
+            pq.push({dist[v], v});
+        }
+    }
+}
+
+
+
+
+
+
+if dist[u] + w < dist[v] then
+    dist[v] := dist[u] + w
+    pq.push((dist[v], v))
+
+
+
+
+//The time complexity is (V+E)logV and space is O(V)
+function dijkstra(graph, source):
+    dist[source] = 0
+    for all other v: dist[v] = infinity
+
+    pq = min-heap with (0, source)
+
+    while pq not empty:
+        (d, u) = pq.pop()
+        if d > dist[u]: continue
+
+        for each neighbor v with weight w:
+            if dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+                pq.push((dist[v], v))
+
+    return dist
+
+
+
+
+
+
+Fibonacci heap theoretically faster,(VlogV+E)
+Binary heap practically better.
+
+
+
+
+
+7.Ye Dijkstra me path kaise wapas nikale (reconstruct kare) — ye explain kar raha hai.
+Sirf distance mil jana enough nahi hota, hume actual route bhi chahiye.
+
+
+
+
+
+
+8.we have weight A->B with weight 1,A->C with weight 3,and with weight C->B with weight -5.
+
+
+
+
+9.O((V+E)logV)
+Weighted graph + large constraints
+= Always use long long for distances.
+
+Network Delay Time =
+
+Longest shortest path from source
+
+
+
+
+10.function networkDelayTime(times, n, k):
+    adj = array of n + 1 empty lists
+    for (u, v, w) in times:
+        adj[u].append((v, w))
+
+    dist = array of size n + 1, all infinity
+    dist[k] = 0
+    pq = min-heap with (0, k)
+
+    while pq is not empty:
+        (d, u) = pq.pop()
+        if d > dist[u]:
+            continue
+        for (v, w) in adj[u]:
+            if dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+                pq.push((dist[v], v))
+
+    maxTime = 0
+    for i from 1 to n:
+        if dist[i] == infinity:
+            return -1
+        maxTime = max(maxTime, dist[i])
+    return maxTime
+
+
+
+
+
+
+11.Dijkstra se:
+
+Har node ka minimum arrival time nikaalo
+
+Jo sabse late mile → wahi answer
+
+
+
+
+
+
+12.Dijkstra fails when:
+
+Negative weights exist
+
+Or relaxation is not monotonic
+
+But here:
+
+No negative cycles
+
+Multiplication stays monotonic
+
+So safe.
+
+
+
+
+Dijkstra can handle this because
+we changed the relaxation rule and heap type.
+
+We are not finding "maximum path length",
+we are finding "maximum probability under monotonic multiplication".
+
+
+
+
+
+NP-hard wala maximum path aur probability wala maximum path alag problems hain.
+
+Yaha monotonic decreasing property problem ko easy bana deta hai.
+
+
+dijkstra mein kehte hain ki ek baar update ho gya then we cannot go with updation with all the other edges.
+The first point is that if all the edges are negative then we can be asked to find the maximum path sum and similarily we can be asked to find the maximum path distance for the positive values for the probability.
+
+
+
+13.#include <bits/stdc++.h>
+using namespace std;
+
+class Solution {
+public:
+    double maxProbability(int n,
+                          vector<vector<int>>& edges,
+                          vector<double>& succProb,
+                          int start,
+                          int end) {
+
+        // Step 1: Build graph
+        vector<vector<pair<int,double>>> adj(n);
+
+        for(int i = 0; i < edges.size(); i++) {
+            int u = edges[i][0];
+            int v = edges[i][1];
+            double p = succProb[i];
+
+            adj[u].push_back({v, p});
+            adj[v].push_back({u, p});  // undirected
+        }
+
+        // Step 2: Probability array
+        vector<double> prob(n, 0.0);
+        prob[start] = 1.0;
+
+        // Step 3: Max heap
+        priority_queue<pair<double,int>> pq;
+        pq.push({1.0, start});
+
+        while(!pq.empty()) {
+
+            auto [curProb, u] = pq.top();
+            pq.pop();
+
+            // If reached target, return immediately
+            if(u == end) return curProb;
+
+            // Ignore outdated entries
+            if(curProb < prob[u]) continue;
+
+            for(auto &edge : adj[u]) {
+                int v = edge.first;
+                double w = edge.second;
+
+                double newProb = curProb * w;
+
+                if(newProb > prob[v]) {
+                    prob[v] = newProb;
+                    pq.push({newProb, v});
+                }
+            }
+        }
+
+        return 0.0;
+    }
+};
+
+
+
+
+
+
+14.function findCheapestPrice(n, flights, src, dst, k):
+    adj = array of n empty lists
+    for (u, v, price) in flights:
+        adj[u].append((v, price))
+
+    pq = min-heap with (0, src, k + 1)
+
+    while pq is not empty:
+        (cost, city, stops) = pq.pop()
+        if city == dst:
+            return cost
+        if stops > 0:
+            for (next, price) in adj[city]:
+                pq.push((cost + price, next, stops - 1))
+
+    return -1
+
+
+
+
+
+
+
+
+
+Each edge × each layer of stops
+≈ E × k
+O(log(Ek))-->each push
+
+
+
+
+
+
+15.Standard Dijkstra marks a node as done once it is extracted with minimum cost.
+But with a stop limit, the cheapest path to a node might use too many stops and fail later. A more expensive path using fewer stops might succeed. So you track (node, stops_used) pairs. A node can be processed multiple times at different stop counts. Each (node, stops) pair is treated as a separate state in the priority queue.
+All are dijkstra questions
+
+Shortest path with fuel limit
+
+Shortest path with color restriction
+
+Shortest path visiting certain nodes
+
+Shortest path with time constraint
+
+Limited number of special edges
+
+Pattern same:
+
+Constraint ko state me add karo.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+16.
+
+
+
+
+
+
+
