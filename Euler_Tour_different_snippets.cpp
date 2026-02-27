@@ -1125,3 +1125,629 @@ int32_t main(){
     }
    }
 }
+
+
+
+
+
+
+
+
+
+
+
+Slide basically bol rahi hai:
+
+Path ko simple range me convert nahi kar sakte.
+
+Isliye entry-exit + prefix approach use karni padegi.
+
+Ya heavy-light decomposition use karna padega.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Entry → +value
+Exit → -value
+Prefix till tin[v] → path sum
+
+That’s it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DFS → O(n)
+Each update → O(log n)
+Each query → O(log n)
+Space → O(n)
+function dfs(v, parent):
+    tin[v] := timer
+    timer := timer + 1
+    for child in adj[v]:
+        if child != parent then
+            dfs(child, v)
+    tout[v] := timer
+
+
+
+
+
+
+
+
+
+
+Entry → +value
+Exit → -value
+Prefix till tin[v] → path sum
+
+Update → modify both entry and exit
+
+That’s it.
+
+
+
+
+
+
+
+
+
+Euler Tour sirf flattening karta hai.
+Kaunsi operation karni hai (sum/min/max/XOR/GCD) — woh Segment Tree decide karega.
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+const int N = 200005;
+
+vector<int> adj[N];
+int tin[N], tout[N];
+int timer = 0;
+int val[N];
+int flat[N];          // flattened tree
+int seg[4*N];         // segment tree
+int n;
+
+/* -------- DFS (Entry Only) -------- */
+
+void dfs(int v, int parent) {
+
+    tin[v] = timer;
+    flat[timer] = val[v];
+    timer++;
+
+    for(int child : adj[v]) {
+        if(child != parent)
+            dfs(child, v);
+    }
+
+    tout[v] = timer - 1;
+}
+
+/* -------- Segment Tree -------- */
+
+void build(int node, int l, int r) {
+    if(l == r) {
+        seg[node] = flat[l];
+        return;
+    }
+
+    int mid = (l + r) / 2;
+    build(2*node, l, mid);
+    build(2*node+1, mid+1, r);
+
+    seg[node] = min(seg[2*node], seg[2*node+1]);
+}
+
+int query(int node, int l, int r, int ql, int qr) {
+
+    if(qr < l || r < ql)
+        return INT_MAX;
+
+    if(ql <= l && r <= qr)
+        return seg[node];
+
+    int mid = (l + r) / 2;
+
+    return min(
+        query(2*node, l, mid, ql, qr),
+        query(2*node+1, mid+1, r, ql, qr)
+    );
+}
+
+void update(int node, int l, int r, int idx, int value) {
+
+    if(l == r) {
+        seg[node] = value;
+        return;
+    }
+
+    int mid = (l + r) / 2;
+
+    if(idx <= mid)
+        update(2*node, l, mid, idx, value);
+    else
+        update(2*node+1, mid+1, r, idx, value);
+
+    seg[node] = min(seg[2*node], seg[2*node+1]);
+}
+
+/* -------- Main -------- */
+
+int main() {
+
+    cin >> n;
+
+    for(int i=1;i<=n;i++)
+        cin >> val[i];
+
+    for(int i=0;i<n-1;i++) {
+        int u,v;
+        cin >> u >> v;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+
+    dfs(1,0);      // assume root = 1
+
+    build(1, 0, n-1);
+
+    int q;
+    cin >> q;
+
+    while(q--) {
+
+        int type;
+        cin >> type;
+
+        if(type == 1) {
+            // Update node value
+            int v, newVal;
+            cin >> v >> newVal;
+
+            update(1, 0, n-1, tin[v], newVal);
+        }
+
+        else {
+            // Subtree minimum query
+            int v;
+            cin >> v;
+
+            cout << query(1, 0, n-1, tin[v], tout[v]) << "\n";
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Euler Tour = tree flattening
+Segment Tree = operation engine
+
+Flatten once.
+Operation change freely.
+
+
+
+
+
+
+
+
+
+
+Hum log path queries ka use nahin kr skte hain and that is it for the value of minimum from the root to the node.
+
+
+
+
+
+
+
+
+
+
+
+
+If problem solve ho raha hai BIT se → use BIT.
+Agar BIT se possible nahi → tab Segment Tree use karo.
+
+
+
+
+
+
+sum->bit,xor->bit,subtree sum->bit or segtree,min->seg tree,range gcd->segtree,path sum->bit,general path min->hld+segtree
+
+
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+const int N = 200005;
+
+vector<int> adj[N];
+int tin[N], tout[N], timer = 0;
+long long val[N], flat[N];
+long long bit[N];
+int n;
+
+/* -------- BIT -------- */
+
+void update(int idx, long long delta) {
+    for(++idx; idx <= n; idx += idx & -idx)
+        bit[idx] += delta;
+}
+
+long long query(int idx) {
+    long long sum = 0;
+    for(++idx; idx > 0; idx -= idx & -idx)
+        sum += bit[idx];
+    return sum;
+}
+
+long long rangeQuery(int l, int r) {
+    return query(r) - (l ? query(l-1) : 0);
+}
+
+/* -------- DFS -------- */
+
+void dfs(int v, int p) {
+    tin[v] = timer;
+    flat[timer] = val[v];
+    timer++;
+
+    for(int u : adj[v]) {
+        if(u != p)
+            dfs(u, v);
+    }
+
+    tout[v] = timer - 1;
+}
+
+/* -------- Main -------- */
+
+int main() {
+    cin >> n;
+
+    for(int i = 1; i <= n; i++)
+        cin >> val[i];
+
+    for(int i = 0; i < n-1; i++) {
+        int u,v;
+        cin >> u >> v;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+
+    dfs(1,0);
+
+    for(int i = 0; i < n; i++)
+        update(i, flat[i]);
+
+    int q;
+    cin >> q;
+
+    while(q--) {
+        int type;
+        cin >> type;
+
+        if(type == 1) {
+            int v;
+            long long newVal;
+            cin >> v >> newVal;
+
+            long long delta = newVal - val[v];
+            val[v] = newVal;
+            update(tin[v], delta);
+        }
+        else {
+            int v;
+            cin >> v;
+            cout << rangeQuery(tin[v], tout[v]) << "\n";
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Euler Tour + Segment Tree/BIT
+→ Time O(log n) per query
+→ Space O(n)
+
+Fully scalable for n up to 2e5 or even 1e6.
+
+
+Node → single index
+Subtree → continuous range
+Root path → entry/exit trick
+
+
+
+
+
+
+
+
+
+subtree->range(tin[u],tin[v])-->sum,min,max,XOR,GCD
+Path query-->add/subtract trick
+ancestor u is ancestor of v
+with path queries between arbitrary nodes,combine lca with euler tourto split the path into two root-to-node paths.
+
+
+
+
+
+
+Ye slide Ancestor Check ka sabse powerful use batati hai — aur ye Euler Tour ka ek hidden superpower hai.
+
+
+
+
+
+Euler Tour:
+Tree ko flatten karta hai.
+Rerooting DP:
+Tree ko rotate karta hai (root shift karta hai).
+We cannot change the root for the case of euler tour
+
+
+
+
+
+
+
+Euler Tour:
+
+One-time cost = O(n)
+
+After that:
+
+Fast queries possible because tree → array
+
+
+
+
+
+
+Child order affects numbers
+But does NOT affect correctness for euler tour
+
+
+
+
+
+
+
+| Query Type | Euler Tour | HLD                 |
+| ---------- | ---------- | ------------------- |
+| Subtree    | ✅ Easy     | ✅ Possible          |
+| Root → v   | ✅ Easy     | ✅ Possible          |
+| u → v      | ❌ Hard     | ✅ Designed for this |
+
+
+
+
+
+
+
+
+
+
+Before building segment tree, check:
+
+✔ tin unique hain
+✔ subtree contiguous hai
+✔ tout[root] = n-1
+✔ timer exactly n pe khatam hua
+
+
+
+
+
+
+
+
+
+🔴 3️⃣ Important Mistake
+
+Querying range [tin[v], tout[v]] but forgetting only entry positions hold values.
+
+Ye bahut subtle mistake hai 👇
+
+Entry-only variant me:
+
+arr[tin[v]] = value[v]
+
+tout par koi value store nahi hoti.
+
+Toh range query me dhyaan rakho:
+
+Sirf entry positions meaningful hain.
+
+
+
+
+LCA = Lowest Common Ancestor
+Tree me do nodes ka sabse neeche wala common parent.
+
+
+
+
+
+
+Because Euler tour exactly captures the path structure of the tree.
+
+Between u aur v ke first appearance ke beech jo sabse upar ka node aata hai, wahi common ancestor hota hai.
+
+
+
+
+
+Whenever we get subtree sum or subtree update think of euler tour and then go with it and that is it.
+
+
+
+
+
+
+
+//O(1) LCA
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 200005;
+vector<int> adj[N];
+
+int n;
+int timer = 0;
+
+vector<int> euler;     // stores nodes in full euler tour
+vector<int> depth;     // depth corresponding to euler positions
+int first[N];          // first occurrence of node in euler tour
+int level[N];          // depth of each node in tree
+
+int st[20][2*N];       // sparse table (store index in euler array)
+int logg[2*N];
+
+void dfs(int v, int p, int d) {
+    level[v] = d;
+
+    first[v] = euler.size();
+    euler.push_back(v);
+    depth.push_back(d);
+
+    for (auto child : adj[v]) {
+        if (child == p) continue;
+
+        dfs(child, v, d + 1);
+
+        // add parent again when returning
+        euler.push_back(v);
+        depth.push_back(d);
+    }
+}
+
+void build_sparse() {
+    int m = depth.size();
+
+    for (int i = 0; i < m; i++)
+        st[0][i] = i;
+
+    for (int j = 1; (1 << j) <= m; j++) {
+        for (int i = 0; i + (1 << j) <= m; i++) {
+            int l = st[j-1][i];
+            int r = st[j-1][i + (1 << (j-1))];
+
+            st[j][i] = (depth[l] < depth[r] ? l : r);
+        }
+    }
+
+    logg[1] = 0;
+    for (int i = 2; i <= m; i++)
+        logg[i] = logg[i/2] + 1;
+}
+
+int lca(int u, int v) {
+    int l = first[u];
+    int r = first[v];
+
+    if (l > r) swap(l, r);
+
+    int len = r - l + 1;
+    int j = logg[len];
+
+    int left = st[j][l];
+    int right = st[j][r - (1 << j) + 1];
+
+    return (depth[left] < depth[right] ? euler[left] : euler[right]);
+}
+
+int main() {
+    cin >> n;
+
+    for (int i = 1; i <= n; i++)
+        adj[i].clear();
+
+    for (int i = 0; i < n-1; i++) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+
+    euler.clear();
+    depth.clear();
+
+    dfs(1, 0, 0);   // assuming 1 is root
+    build_sparse();
+
+    int q;
+    cin >> q;
+
+    while (q--) {
+        int u, v;
+        cin >> u >> v;
+        cout << lca(u, v) << "\n";
+    }
+}
