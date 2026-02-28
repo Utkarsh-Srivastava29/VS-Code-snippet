@@ -6,6 +6,7 @@
 
 
 
+
 2.BFS finds shortest paths when all edges have weight 1. With varying weights, you need Dijkstra. It always picks the closest unvisited node, ensuring you process nodes in order of their shortest distance from the source.
 
 
@@ -335,9 +336,93 @@ Constraint ko state me add karo.
 
 
 
+Dijkstra ko sirf ek cheez chahiye:
+
+Path cost monotonic hona chahiye
+(aage badhne par cost kabhi kam na ho)
+
+16.function minimumEffortPath(heights):
+    rows = heights.rows
+    cols = heights.cols
+    dist = 2D array of size rows x cols, all infinity
+    dist[0][0] = 0
+    pq = min-heap with (0, 0, 0)
+
+    while pq is not empty:
+        (effort, r, c) = pq.pop()
+        if r == rows - 1 and c == cols - 1:
+            return effort
+        if effort > dist[r][c]:
+            continue
+        for (nr, nc) in neighbors of (r, c):
+            newEffort = max(effort, abs(heights[r][c] - heights[nr][nc]))
+            if newEffort < dist[nr][nc]:
+                dist[nr][nc] = newEffort
+                pq.push((newEffort, nr, nc))
+
+    return dist[rows - 1][cols - 1]
+
+Time complexity-->O(rows*columns*log(rows*columns))
+Space complexity-->O(rows*columns)
 
 
-16.
+
+
+
+Dijkstra is not limited to summing edge weights. It works for any metric where the triangle inequality holds: dist [A][C] <= dist [A][B] + dist [B][C] . For minimax paths, the triangle inequality becomes: max_effort[ACI <= max(max_effort[A][BI, max_effort[B]IC])
+This holds, so Dijkstra works. The algorithm structure stays the same. You redefine how you combine costs: instead of addition, you use max()
+
+
+function flightDiscount(n, edges):
+    adj = array of n + 1 empty lists
+    for (u, v, price) in edges:
+        adj[u].append((v, price))
+
+    dist = 2D array of size (n + 1) x 2, all infinity
+    dist[1][0] = 0
+    pq = min-heap with (0, 1, 0)
+
+    while pq is not empty:
+        (cost, u, used) = pq.pop()
+        if cost > dist[u][used]:
+            continue
+        for (v, price) in adj[u]:
+            if cost + price < dist[v][used]:
+                dist[v][used] = cost + price
+                pq.push((dist[v][used], v, used))
+            if used == 0 and cost + price / 2 < dist[v][1]:
+                dist[v][1] = cost + price / 2
+                pq.push((dist[v][1], v, 1))
+
+    return min(dist[n][0], dist[n][1])
+
+
+Dijkstra is enough whenever the cost function is monotonic (never improves after being finalized) and edge transitions do not reduce cost in an unexpected way.
+
+
+
+
+
+
+
+
+
+
+
+17.Same node par different condition ho sakti hai,
+toh condition ko state me add karo aur Dijkstra chalao.
+
+
+
+18.Kuch problems me aapko node ke saath ye bhi track karna padta hai ki kaun-kaun se items collect kiye gaye hain, aur isliye distance array 2D hota hai: dist[node][mask].
+
+
+19.Dijkstra = Priority Queue + Relaxation,
+Time = O(E log V),
+Works only for non-negative weights.
+
+
+
 
 
 
