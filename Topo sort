@@ -1,0 +1,354 @@
+1.Topological sort = dependency graph ka valid order.
+2.Cycle = impossible situation.
+
+
+3.Topological sort sirf directed graphs me hota hai jisme cycle nahi hoti — unhe DAG kehte hain.
+
+
+4.Topological sort sirf directed graphs me hota hai jisme cycle nahi hoti — unhe DAG kehte hain.
+
+
+5.Kahn's algorithm-->Time complexity->O(E+V) and space complexity->O(V)
+function kahnTopoSort(n, adj):
+    indegree = array of size n, all 0
+    for u from 0 to n - 1:
+        for v in adj[u]:
+            indegree[v] = indegree[v] + 1
+
+    q = queue
+    for u from 0 to n - 1:
+        if indegree[u] == 0:
+            q.push(u)
+
+    order = empty list
+    while q is not empty:
+        u = q.pop()
+        order.append(u)
+        for v in adj[u]:
+            indegree[v] = indegree[v] - 1
+            if indegree[v] == 0:
+                q.push(v)
+
+    if order.size != n:
+        return "CYCLE DETECTED"
+    return order
+
+
+
+
+
+
+
+
+Agar Kahn’s algorithm sab nodes process nahi kar paata,
+toh jo bache hue nodes hain wahi cycle banate hain.
+
+
+
+
+
+
+
+Course Schedule II = Topological Sort problem.
+Cycle ho toh empty return.
+Nahi toh topo order return.
+
+
+
+
+
+
+Kahn’s Algorithm =
+Repeatedly take courses with in-degree 0
+If some never become 0 → cycle.
+
+
+
+
+In-degree = "kitne prerequisites abhi pending hain"
+Queue = "ready courses"
+Time complexity->O(V+E) and the space complexity is O(V+E)
+
+
+
+
+
+Prerequisite problems form directed graphs where dependencies are edges.
+If all nodes can be processed using indegree-based topological sort, a valid order exists; otherwise, a cycle prevents scheduling.
+
+
+
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+bool dfs(int u, vector<vector<int>>& adj, vector<int>& color) {
+    color[u] = 1; // gray (in progress)
+
+    for (int v : adj[u]) {
+        if (color[v] == 1) return true;        // back edge → cycle
+        if (color[v] == 0 && dfs(v, adj, color)) 
+            return true;
+    }
+
+    color[u] = 2; // black (finished)
+    return false;
+}
+
+bool hasCycle(int n, vector<vector<int>>& adj) {
+    vector<int> color(n, 0); // 0 = white
+
+    for (int i = 0; i < n; i++) {
+        if (color[i] == 0) {
+            if (dfs(i, adj, color)) return true;
+        }
+    }
+    return false;
+}
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<int>> adj(n);
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back(v);   // directed edge u → v
+    }
+
+    if (hasCycle(n, adj))
+        cout << "Cycle exists\n";
+    else
+        cout << "No cycle\n";
+}
+
+
+
+
+
+
+
+//lexicographically smallest dedo hamein and that is it and that is final code to be done for the problem below and I want to solve for the question below
+priority_queue<int, vector<int>, greater<int>> pq;
+
+for(int i = 0; i < n; i++)
+    if(indegree[i] == 0)
+        pq.push(i);
+
+while(!pq.empty()) {
+    int u = pq.top();
+    pq.pop();
+    result.push_back(u);
+
+    for(int v : adj[u]) {
+        indegree[v]--;
+        if(indegree[v] == 0)
+            pq.push(v);
+    }
+}
+
+
+
+
+
+
+Use Kahn + min-heap for lexicographically smallest topo order and iterative safety.
+Use DFS when recursion is convenient or when you need explicit cycle path detection and creation
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<vector<int>> adj;
+vector<int> color, parent;
+vector<int> cycle;
+int start_node = -1, end_node = -1;
+
+bool dfs(int u) {
+    color[u] = 1; // gray
+
+    for (int v : adj[u]) {
+        if (color[v] == 0) {
+            parent[v] = u;
+            if (dfs(v)) return true;
+        }
+        else if (color[v] == 1) {
+            // cycle found
+            start_node = v;
+            end_node = u;
+            return true;
+        }
+    }
+
+    color[u] = 2; // black
+    return false;
+}
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    adj.assign(n, {});
+    color.assign(n, 0);
+    parent.assign(n, -1);
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back(v);
+    }
+
+    for (int i = 0; i < n; i++) {
+        if (color[i] == 0) {
+            if (dfs(i)) break;
+        }
+    }
+
+    if (start_node == -1) {
+        cout << "No cycle\n";
+    } else {
+        // reconstruct cycle
+        vector<int> path;
+        path.push_back(start_node);
+
+        for (int v = end_node; v != start_node; v = parent[v])
+            path.push_back(v);
+
+        path.push_back(start_node);
+        reverse(path.begin(), path.end());
+
+        cout << "Cycle: ";
+        for (int x : path)
+            cout << x << " ";
+        cout << "\n";
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Topological order sirf valid sequence deta hai;
+actual optimization (shortest path, longest path, etc.) alag DP ya graph algorithm se hota hai.
+
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<vector<pair<int,int>>> adj;
+vector<int> topo;
+vector<bool> vis;
+
+void dfs(int u) {
+    vis[u] = true;
+    for (auto [v, w] : adj[u])
+        if (!vis[v])
+            dfs(v);
+    topo.push_back(u);
+}
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    adj.assign(n, {});
+    vis.assign(n, false);
+
+    for (int i = 0; i < m; i++) {
+        int u, v, w;
+        cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+    }
+
+    // Topological sort
+    for (int i = 0; i < n; i++)
+        if (!vis[i])
+            dfs(i);
+
+    reverse(topo.begin(), topo.end());
+
+    int src;
+    cin >> src;
+
+    const long long INF = 1e18;
+    vector<long long> dist(n, INF);
+    dist[src] = 0;
+
+    // DP relaxation in topo order
+    for (int u : topo) {
+        if (dist[u] != INF) {
+            for (auto [v, w] : adj[u]) {
+                dist[v] = min(dist[v], dist[u] + w);
+            }
+        }
+    }
+
+    // Output
+    for (int i = 0; i < n; i++) {
+        if (dist[i] == INF)
+            cout << "INF ";
+        else
+            cout << dist[i] << " ";
+    }
+}
+
+
+
+
+
+
+
+
+Topological sort gives correct processing order in DAG;
+DP relaxation in that order computes shortest paths in linear time.
+
+
+
+
+
+
+State-space problems are implicit graphs where nodes are configurations and edges are transitions generated during traversal; recognizing this lets you apply graph algorithms like BFS, DFS, or even topological sort in non-obvious problems.
+
+
+1️⃣ Cycle check nahi kiya → invalid graph pe topo chala diya
+2️⃣ Edge direction galat bana diya → pura order ulta ho gaya
+3️⃣ Disconnected nodes ignore kiye → incomplete result
+4️⃣ Topo ko optimization samajh liya → galat assumption
+
+
+
+
+
+A valid topological ordering 
+
+
+
+
+
+
+
+
+DAG (Directed Acyclic Graph) mein longest path efficiently nikaala ja sakta hai kyunki ismein cycles nahi hoti, isliye nodes ko topological order mein process kiya ja sakta hai — yani agar edge u->v hai to 
+u se pehle hamesha v e pehle aayega.Isi order ka use karke hum dynamic programming apply karte hain, jahan state dist[v] represent karta hai source se node v take ka longest path aur transition hota hai dist[v]=max(dist[v],dist[u]+1)for every edge u->v.Topological order ensure karta hai ki jab hum 
+v compute kar rahe hote hain, tab tak uske saare predecessors compute ho chuke hote hain, isliye DP safely kaam karta hai. Isi pattern ko shortest path, path counting, maximum/minimum cost path jaise problems mein bhi use kiya ja sakta hai, aur poora solution linea
