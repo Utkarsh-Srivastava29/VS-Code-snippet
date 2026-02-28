@@ -351,4 +351,4 @@ A valid topological ordering
 
 DAG (Directed Acyclic Graph) mein longest path efficiently nikaala ja sakta hai kyunki ismein cycles nahi hoti, isliye nodes ko topological order mein process kiya ja sakta hai — yani agar edge u->v hai to 
 u se pehle hamesha v e pehle aayega.Isi order ka use karke hum dynamic programming apply karte hain, jahan state dist[v] represent karta hai source se node v take ka longest path aur transition hota hai dist[v]=max(dist[v],dist[u]+1)for every edge u->v.Topological order ensure karta hai ki jab hum 
-v compute kar rahe hote hain, tab tak uske saare predecessors compute ho chuke hote hain, isliye DP safely kaam karta hai. Isi pattern ko shortest path, path counting, maximum/minimum cost path jaise problems mein bhi use kiya ja sakta hai, aur poora solution linea
+v compute kar rahe hote hain, tab tak uske saare predecessors compute ho chuke hote hain, isliye DP safely kaam karta hai. Isi pattern ko shortest path, path counting, maximum/minimum cost path jaise problems mein bhi use kiya ja sakta hai, aur poora solution linear time O(n+m) mein ho jaata hai.
