@@ -1,3 +1,5 @@
+
+
 1.Topological sort = dependency graph ka valid order.
 2.Cycle = impossible situation.
 
@@ -340,7 +342,7 @@ State-space problems are implicit graphs where nodes are configurations and edge
 
 
 
-A valid topological ordering 
+A valid topological ordering exists if and only if the graph is a DAG(directed acyclic graph) .The graph does not need to be connected.Nodes can have mulyiple outgoing edges.Mutiple valid orderings can exist when several nodes have in-degree 0 at the ame step.The defining property is the absence of the directed cycles.
 
 
 
@@ -352,3 +354,321 @@ A valid topological ordering
 DAG (Directed Acyclic Graph) mein longest path efficiently nikaala ja sakta hai kyunki ismein cycles nahi hoti, isliye nodes ko topological order mein process kiya ja sakta hai — yani agar edge u->v hai to 
 u se pehle hamesha v e pehle aayega.Isi order ka use karke hum dynamic programming apply karte hain, jahan state dist[v] represent karta hai source se node v take ka longest path aur transition hota hai dist[v]=max(dist[v],dist[u]+1)for every edge u->v.Topological order ensure karta hai ki jab hum 
 v compute kar rahe hote hain, tab tak uske saare predecessors compute ho chuke hote hain, isliye DP safely kaam karta hai. Isi pattern ko shortest path, path counting, maximum/minimum cost path jaise problems mein bhi use kiya ja sakta hai, aur poora solution linear time O(n+m) mein ho jaata hai.
+
+
+
+
+
+
+
+
+vector<int> topo;      // topological order
+vector<int> dist(n+1, -1e18);
+vector<int> parent(n+1, -1);
+
+dist[1] = 1;
+
+for(int u : topo){
+    for(int v : adj[u]){
+        if(dist[u] + 1 > dist[v]){
+            dist[v] = dist[u] + 1;
+            parent[v] = u;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+Ye problem basically:
+
+"Find longest path from 1 to n in DAG"
+
+Bas isko story bana ke bola gaya hai.
+
+
+
+
+
+
+
+
+
+
+humko toposort mein dist[v]=max(dist[u]+1) bs yhi hai
+
+
+
+
+
+
+
+//TC-->O(V+E),SC-->O(E+V)
+#include<bits/stdc++.h>
+using namespace std;
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<int>> adj(n+1);
+    vector<int> indeg(n+1, 0);
+
+    for(int i = 0; i < m; i++){
+        int a, b;
+        cin >> a >> b;
+        adj[a].push_back(b);
+        indeg[b]++;
+    }
+
+    // Step 1: Kahn's Algorithm (Topological Sort)
+    queue<int> q;
+    for(int i = 1; i <= n; i++){
+        if(indeg[i] == 0){
+            q.push(i);
+        }
+    }
+
+    vector<int> topo;
+    while(!q.empty()){
+        int u = q.front();
+        q.pop();
+        topo.push_back(u);
+
+        for(int v : adj[u]){
+            indeg[v]--;
+            if(indeg[v] == 0){
+                q.push(v);
+            }
+        }
+    }
+
+    // Step 2: DP initialization
+    vector<long long> dist(n+1, -1e18);
+    vector<int> parent(n+1, -1);
+
+    dist[1] = 1;   // counting cities (including city 1)
+
+    // Step 3: Process in topological order
+    for(int u : topo){
+        if(dist[u] < 0) continue;   // unreachable
+
+        for(int v : adj[u]){
+            if(dist[u] + 1 > dist[v]){
+                dist[v] = dist[u] + 1;
+                parent[v] = u;
+            }
+        }
+    }
+
+    // Step 4: Check if reachable
+    if(dist[n] < 0){
+        cout << "IMPOSSIBLE\n";
+        return 0;
+    }
+
+    // Reconstruct path
+    vector<int> path;
+    int cur = n;
+    while(cur != -1){
+        path.push_back(cur);
+        cur = parent[cur];
+    }
+
+    reverse(path.begin(), path.end());
+
+    cout << path.size() << "\n";
+    for(int x : path){
+        cout << x << " ";
+    }
+    cout << "\n";
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+If I have to ask the question to whom I can reach for every node It would make more sence who can reach me by reversing the nodes.
+Earliest finish → flow of time forward
+Latest start → flow of time backward
+Isliye DAG reverse karke end se compute karte hain.
+
+
+
+
+
+
+any optimisation problem can be solved in O(E+V) (longest path,shortest path,counting path) can be solved in O(E+V) using topological sortingplus DP.The graph structure eleminates the need for the more complex algorithms like dijkstra r BellmennFord Algorithm.
+
+
+
+
+
+
+
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+const int MOD = 1e9+7;
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<int>> adj(n+1);
+    vector<int> indeg(n+1, 0);
+
+    for(int i = 0; i < m; i++){
+        int a, b;
+        cin >> a >> b;
+        adj[a].push_back(b);
+        indeg[b]++;
+    }
+
+    // Kahn's Algorithm (Topological Sort)
+    queue<int> q;
+    for(int i = 1; i <= n; i++){
+        if(indeg[i] == 0)
+            q.push(i);
+    }
+
+    vector<int> topo;
+    while(!q.empty()){
+        int u = q.front();
+        q.pop();
+        topo.push_back(u);
+
+        for(int v : adj[u]){
+            indeg[v]--;
+            if(indeg[v] == 0)
+                q.push(v);
+        }
+    }
+
+    // DP array
+    vector<long long> ways(n+1, 0);
+    ways[1] = 1;
+
+    for(int u : topo){
+        for(int v : adj[u]){
+            ways[v] = (ways[v] + ways[u]) % MOD;
+        }
+    }
+
+    cout << ways[n] << "\n";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int minimumTime(int n, vector<vector<int>>& relations, vector<int>& time) {
+    vector<vector<int>> adj(n);
+    vector<int> indegree(n, 0);
+
+    // Build graph
+    for (auto& r : relations) {
+        int u = r[0] - 1;  // 0-based
+        int v = r[1] - 1;
+        adj[u].push_back(v);
+        indegree[v]++;
+    }
+
+    queue<int> q;
+    vector<long long> finish(n);
+
+    // Initialize
+    for (int i = 0; i < n; i++) {
+        finish[i] = time[i];
+        if (indegree[i] == 0)
+            q.push(i);
+    }
+
+    // Topological order processing
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+
+        for (int v : adj[u]) {
+            finish[v] = max(finish[v], finish[u] + time[v]);
+            indegree[v]--;
+            if (indegree[v] == 0)
+                q.push(v);
+        }
+    }
+
+    return *max_element(finish.begin(), finish.end());
+}
+
+
+
+
+
+
+
+
+
+
+
+jb bhi project majaement waala kaam dekha jaata hai na to hum log topo sort lga skte hain
+
+
+
+
+
+Courses with no prerequisites start at time 0 and finish in their own duration time[v] 
+Courses with prerequisites start after the latest prerequisite finishes, and the total project time is the maximum finish time among all courses.
+
+
+
+
+
+
+
+
+
+
+
