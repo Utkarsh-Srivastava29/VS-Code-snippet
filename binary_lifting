@@ -8,3 +8,477 @@ aur binary representation se jump karo."
 Tree mein node v se root ki taraf k steps upar jao,
 kaunsa node milta hai?
 
+
+
+
+Binary Lifting allows you to jump upward in powers of two,
+O(k)-->O(logk) and that is it and we need to solve that way only and that is it.
+
+
+
+
+The up table has the dimension n*log2n and that is it.We have the dimensions according to it only.Binary lifting table ka size n × log n hota hai
+kyunki maximum jump n-1 hai aur powers of 2 se usse cover karne ke liye sirf log2(n) columns chahiye.
+
+
+
+up[v][0] sirf parent hai-->ye binary lifting ki foundation hai .Agr ye shi hai,toh poori table shi bnegi.
+
+
+
+up[v][j] = up[ up[v][j-1] ][j-1]
+2^j ancestor ko calculate karne ke liye,
+pehle 2^(j−1) ancestor tak jao,
+fir wahan se 2^(j−1) ancestor lo.
+
+
+
+
+Binary lifting ka rule:
+2^j jump = 2^(j-1) jump + 2^(j-1) jump
+
+
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+const int MAXN = 200005;
+const int LOG = 20;
+
+vector<int> adj[MAXN];
+int up[MAXN][LOG];
+int depth[MAXN];
+
+void dfs(int v, int p) {
+    up[v][0] = p;   // 2^0 = 1 step (parent)
+
+    for(int k = 1; k < LOG; k++) {
+        if(up[v][k-1] != -1)
+            up[v][k] = up[ up[v][k-1] ][k-1];
+        else
+            up[v][k] = -1;
+    }
+
+    for(int u : adj[v]) {
+        if(u == p) continue;
+        depth[u] = depth[v] + 1;
+        dfs(u, v);
+    }
+}
+
+// find k-th ancestor
+int kthAncestor(int v, int k) {
+    for(int i = 0; i < LOG; i++) {
+        if(k & (1 << i)) {
+            v = up[v][i];
+            if(v == -1) return -1;
+        }
+    }
+    return v;
+}
+
+
+
+
+
+
+
+
+Each entry up[u][k] stores 2^k the ancestor of node v.Tou compute it with the recurrence up[v][k]=up[up[v][k-1]][k-1]
+
+
+
+
+
+O(n log n)
+for(int j = 1; j < LOG; j++){
+    for(int v = 1; v <= n; v++){
+        if(up[v][j-1] != -1)
+            up[v][j] = up[ up[v][j-1] ][j-1];
+        else
+            up[v][j] = -1;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+for v = 1 to n:
+ up[v][0] = parent[v]
+
+for j = 1 to log(n):
+ for v = 1 to n:
+ up[v][j] = up[up[v][j-1]][j-1]
+
+
+Preprocessing-->O(nlogn),Space complexity-->O(nlogn),Queries-->O(logk),Total-->O(nlogn+qlogn)
+
+
+
+
+If k>depth[v] then forget that there is any parent and that it it and then just ignore.
+
+
+
+
+
+Alternatively, compute depth and check k > depth[v] before jumping. Either approach works. The jumping method is simpler because you do not need to precompute depths separately. If up[root][0] = root, you will stay at root forever, so also check if you have jumped more times than needed.
+
+int kthAncestor(int v, int k){
+    for(int i = 0; i < LOG; i++){
+        if(k & (1 << i)){
+            v = up[v][i];
+            if(v == -1) return -1;
+        }
+    }
+    return v;
+}
+
+
+
+
+
+
+
+
+O(nlogn)-->preprocessing time and O(logn)per query.Space complexity is O(nlogn) and per query the time complexity is O(logn)
+
+
+
+
+
+
+
+Binary lifting = precompute powers-of-two jumps so that any k-step ancestor query can be answered in O(log n) time.
+
+
+
+
+
+
+
+LCA using binary lifting =
+First make depths equal, then lift both nodes together from highest power to lowest until their parents match.
+
+
+
+
+LCA using binary lifting =
+First make depths equal, then lift both nodes together from highest power to lowest until their parents match.
+
+
+
+
+
+Before finding LCA, always bring both nodes to the same depth using binary lifting in O(log n) time.
+We climb both nodes upward in the largest possible equal jumps that keep them in different branches, stopping exactly one step below their meeting point.
+
+
+
+
+//Time complexity-->O(nlogn) preprocessing,O(logn) per query.Space-->O(nlogn) and that is it.
+function companyQueriesII(n, parent, queries):
+    LOG = ceil(log2(n))
+    up = 2D array of size n x LOG
+    depth = array of size n
+
+// Build sparse table
+    for i from 1 to n:
+        up[i][0] = parent[i]
+    for j from 1 to LOG - 1:
+        for i from 1 to n:
+            if up[i][j-1] != -1:
+                up[i][j] = up[up[i][j-1]][j-1]
+
+// Compute depths with BFS from root
+    computeDepths()
+
+function lca(a, b):
+        if depth[a] < depth[b]:
+            swap(a, b)
+
+// Bring a to same depth as b
+        diff = depth[a] - depth[b]
+        for j from 0 to LOG - 1:
+            if diff & (1 << j):
+                a = up[a][j]
+
+if a == b:
+            return a
+
+// Binary lift both until they meet
+        for j from LOG - 1 down to 0:
+            if up[a][j] != up[b][j]:
+                a = up[a][j]
+                b = up[b][j]
+
+return up[a][0]
+
+for (a, b) in queries:
+        print lca(a, b)
+
+We climb both nodes upward in the largest possible equal jumps that keep them in different branches, stopping exactly one step below their meeting point.The nodes are in different subtrees, so their meeting point is the root. This example shows how the algorithm handles nodes in separate branches.
+
+The nodes are in different subtrees, so their meeting point is the root. This example shows how the algorithm handles nodes in separate branches.
+If two nodes lie in completely separate branches under the root,
+their lowest common ancestor is the root itself.
+
+
+
+
+distance(u,v)=depth[u]+depth[v]-2*depth[LCA(u,v)]
+
+
+class TreeAncestor:
+    function constructor(n, parent):
+        LOG = ceil(log2(n)) + 1
+        up = 2D array of size n x LOG, all -1
+
+// Base case: direct parents
+        for i from 0 to n - 1:
+            up[i][0] = parent[i]
+
+// Fill sparse table
+        for j from 1 to LOG - 1:
+            for i from 0 to n - 1:
+                if up[i][j-1] != -1:
+                    up[i][j] = up[up[i][j-1]][j-1]
+
+function getKthAncestor(node, k):
+        for j from 0 to LOG - 1:
+            if k & (1 << j):
+                node = up[node][j]
+                if node == -1:
+                    return -1
+        return node
+
+
+
+
+O(nlogn)--->preprocessing and O(logk) per query.Space-->O(nlogn)
+
+
+
+
+
+
+
+class TreeAncestor:
+    function constructor(n, parent):
+        LOG = ceil(log2(n)) + 1
+        up = 2D array of size n x LOG, all -1
+
+// Base case: direct parents
+        for i from 0 to n - 1:
+            up[i][0] = parent[i]
+
+// Fill sparse table
+        for j from 1 to LOG - 1:
+            for i from 0 to n - 1:
+                if up[i][j-1] != -1:
+                    up[i][j] = up[up[i][j-1]][j-1]
+
+function getKthAncestor(node, k):
+        for j from 0 to LOG - 1:
+            if k & (1 << j):
+                node = up[node][j]
+                if node == -1:
+                    return -1
+        return node
+
+
+
+
+
+Binary lifting se do nodes ka lowest common ancestor O(log n) time mein find kar sakte hain.
+2^j jumps ke saath aggregate values (sum/max/min) store karke path par queries efficiently solve kar sakte hain.
+Binary lifting se do nodes ka lowest common ancestor O(log n) time mein find kar sakte hain.
+Kisi node ka specific depth par ancestor k-th ancestor technique se directly nikala ja sakta hai.
+
+
+
+
+
+
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    cin >> n;
+
+    vector<int> nextNode(n + 1);
+
+    for (int i = 1; i <= n; i++)
+        cin >> nextNode[i];
+
+    int LOG = 60; // enough for k up to 1e18
+    vector<vector<int>> jump(n + 1, vector<int>(LOG));
+
+    // Base case
+    for (int i = 1; i <= n; i++)
+        jump[i][0] = nextNode[i];
+
+    // Build table
+    for (int j = 1; j < LOG; j++) {
+        for (int i = 1; i <= n; i++) {
+            jump[i][j] = jump[ jump[i][j-1] ][j-1];
+        }
+    }
+
+    int q;
+    cin >> q;
+
+    while (q--) {
+        long long x, k;
+        cin >> x >> k;
+
+        for (int j = 0; j < LOG; j++) {
+            if (k & (1LL << j)) {
+                x = jump[x][j];
+            }
+        }
+
+        cout << x << "\n";
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+Instead of storing full log n ancestors for every node, store ancestors only up to the node’s depth to reduce memory usage in shallow trees.When n=1e6 then the time complexity might be very large
+This is 2*1e7
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    cin >> n;
+
+    vector<int> parent(n+1);
+    parent[1] = -1; // root
+
+    for(int i = 2; i <= n; i++)
+        cin >> parent[i];
+
+    // Build adjacency list
+    vector<vector<int>> adj(n+1);
+    for(int i = 2; i <= n; i++) {
+        adj[parent[i]].push_back(i);
+    }
+
+    // Compute depth
+    vector<int> depth(n+1, 0);
+
+    function<void(int)> dfs = [&](int v) {
+        for(auto u : adj[v]) {
+            depth[u] = depth[v] + 1;
+            dfs(u);
+        }
+    };
+
+    dfs(1);
+
+    // Optimized up table
+    vector<vector<int>> up(n+1);
+
+    // Allocate only needed columns per node
+    for(int i = 1; i <= n; i++) {
+        int maxJump = 0;
+        while((1 << maxJump) <= depth[i])
+            maxJump++;
+        up[i].resize(maxJump, -1);
+    }
+
+    // Fill first column (parent)
+    for(int i = 1; i <= n; i++) {
+        if(!up[i].empty())
+            up[i][0] = parent[i];
+    }
+
+    // Build higher columns
+    int maxLog = 0;
+    for(int i = 1; i <= n; i++)
+        maxLog = max(maxLog, (int)up[i].size());
+
+    for(int j = 1; j < maxLog; j++) {
+        for(int i = 1; i <= n; i++) {
+            if(j < up[i].size()) {
+                int mid = up[i][j-1];
+                if(mid != -1 && j-1 < up[mid].size())
+                    up[i][j] = up[mid][j-1];
+                else
+                    up[i][j] = -1;
+            }
+        }
+    }
+
+    // Queries
+    int q;
+    cin >> q;
+
+    while(q--) {
+        int node;
+        long long k;
+        cin >> node >> k;
+
+        for(int j = 0; j < up[node].size(); j++) {
+            if(k & (1LL << j)) {
+                if(j < up[node].size())
+                    node = up[node][j];
+                else {
+                    node = -1;
+                }
+                if(node == -1)
+                    break;
+            }
+        }
+
+        cout << node << "\n";
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
