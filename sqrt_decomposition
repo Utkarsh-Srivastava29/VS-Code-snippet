@@ -1,0 +1,13 @@
+sqrt(n) mein divide krte hain
+
+mo's hai wo left pointer ko same block mein chaega and right pointer ko  aage badhaega so there will be n*sqrt(n)-->right pointer and q*sqrt(n) for left pointer this is mo's algorithm
+
+
+Counting the number of triangles
+
+Xenia and Tree mein humlog jaa skte hain for the sqrt decompotion and whart we can do  is like we can just keep the things till sqrt(q) and then we will just mark everthing as soon as the bucket spills ans run a multisource bfs
+
+
+
+sum of x-->sqrt(x) distinc values knapsack-->(N items-->a[i] weight)(summation of all ai <=1e5]
+string s1,n patterns --->pi<=1e5-->300 different items
