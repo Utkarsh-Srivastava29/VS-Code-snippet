@@ -1,0 +1,82 @@
+DFS — traversal, subtree, cycles
+BFS — shortest path (unweighted), levels
+Multi-source BFS — multiple starting points, nearest source
+Flood Fill — grid/region traversal
+Connected Components — grouping nodes
+Cycle Detection — detect loops in graph
+
+Topological Sort — ordering in DAG
+DAG DP — DP on directed acyclic graph
+
+BFS (unweighted shortest path) — minimum edges distance
+0-1 BFS — weights 0/1 shortest path
+Dijkstra — weighted shortest path
+Bellman-Ford — negative weights
+Floyd-Warshall — all-pairs shortest path
+
+Bipartite Graph — 2-coloring, no odd cycle
+2-Coloring — assign 2 groups
+Odd Cycle Detection — check non-bipartite
+Parity Graph — even/odd constraints
+XOR Graph — bitwise constraints
+
+Tree Traversal — DFS/BFS on tree
+Depth / Parent — hierarchy info
+Subtree Size — subtree queries
+Tree Height — max depth
+Tree Diameter — longest path
+
+Binary Lifting — fast ancestor queries
+LCA — lowest common ancestor
+K-th Ancestor — jump upwards
+Distance Between Nodes — path length
+
+Euler Tour — flatten tree
+Tree Flattening — convert to array
+In-Time / Out-Time — subtree ranges
+Subtree Queries — range queries on tree
+
+Prefix Sum on Tree — path sums
+Difference Array on Tree — range updates
+Path Queries using LCA — path calculations
+
+Subtree DP — DP using children
+Tree Diameter DP — longest path DP
+Tree Independent Set — select nodes
+Tree Matching — matching edges
+DP on Paths — path-based DP
+
+Rerooting DP — answer for every node
+
+Small-to-Large Merging — merge sets efficiently
+DSU on Tree — subtree queries optimization
+Tree Centroid — balance tree
+Centroid Decomposition — divide & conquer
+
+Disjoint Set Union — connectivity
+Union by Rank — optimize merging
+Path Compression — optimize find
+
+Topological Sort — ordering dependencies
+DAG DP — DP over topo order
+Longest Path in DAG — max path
+
+Tree Greedy — pruning/cutting
+Edge Selection — choose edges optimally
+Interval Greedy — scheduling
+Ordering Greedy — arrangement problems
+
+Binary Search on Answer — optimize value
+Binary Search on Tree — depth/answer search
+Binary Search + DFS — check via DFS
+Binary Search + BFS — check via BFS
+
+Tree Construction — build valid tree
+Graph Construction — build graph
+Degree-based Construction — degree constraints
+
+Tree Diameter Variations — modified longest path
+Tree Partitioning — divide tree
+Longest Path Constraints — constrained paths
+Graph Bridges — critical edges
+Articulation Points — critical nodes
