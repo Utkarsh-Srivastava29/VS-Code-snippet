@@ -1,3 +1,69 @@
+https://www.geeksforgeeks.org/problems/m-coloring-problem-1587115620/1
+You are given an undirected graph consisting of V vertices and E edges represented by a list edges[][], along with an integer m. Your task is to determine whether it is possible to color the graph using at most m different colors such that no two adjacent vertices share the same color. Return true if the graph can be colored with at most m colors, otherwise return false.
+Note: The graph is indexed with 0-based indexing.
+
+
+
+
+
+class Solution {
+  public:
+    void dfs(int src,int par,vector<vector<int>>&g,int &maxi,vector<int>&vis){
+    set<int>s;
+    for(auto &child:g[src]){
+        if(vis[child])
+        s.insert(vis[child]);
+    }
+    int curr=1;
+    while(s.count(curr)){
+        curr++;
+    }
+    vis[src]=curr;
+    maxi=max(maxi,curr);
+    for(auto &child:g[src]){
+        if(!vis[child]){
+            dfs(child,src,g,maxi,vis);
+        }
+    }
+}
+    bool graphColoring(int v, vector<vector<int>> &edges, int m) {
+        vector<vector<int>>g(v);
+        int e=edges.size();
+        for(int i=0;i<e;i++){
+        int u=edges[i][0];
+        int v=edges[i][1];
+        g[u].push_back(v);
+        g[v].push_back(u);
+    }
+  int maxi=0;
+  vector<int>vis(v);
+  for(int i=0;i<v;i++){
+      if(vis[i]) continue;
+       dfs(i,-1,g,maxi,vis);
+  }
+ 
+  if(maxi<=m) return true;
+  return false;
+        
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Bipartite Graphs
 
 1.Intro to bipartite graphs, how to detect them using 2-coloring, and their use in problems like team assignment and scheduling conflicts.
