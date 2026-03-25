@@ -1,3 +1,11 @@
+Q-->you are given a directed graph you have to tell if there exists a node from where you can reach all the nodes or not?
+Solution-->We can use dfs topo sort in the order of the ending time and then just find the answer the first one in the topo sort of the dfs.However it is not necessarily yopo sort.Because if we apply bfs then the 1-2->3->1 and 2->4 will never have anyone with zero indegree and hence we won't be able to apply bfs topo sort and hence we need to do scc sort of stuff and any element of the first sc will be our answer.
+Now if anyone scc with indegree zero cannot reach the rest of the graph then none from the graph can reach back to it as it has indegree zero and hence the answer for checking the first node.
+
+
+
+
+
 
 
 1.Topological sort = dependency graph ka valid order.
