@@ -93,6 +93,18 @@ If you ever think:
                                        };
                                      --->Rerooting is not dynamic.Tree badla ⇒ technique badlo.You need dynamic tree data structures like Link-Cut Trees or Euler Tour Trees.If only node values change but the structure stays fixed, you might be able to use rerooting combined with segment trees or other range query structures.
 
+-----------------------------*****************----------------------------
+ye dp rerooting mein ye bhi aa skta hai minimum number of edges that can be flipped in a directed tree such that all the nodes are reachable from a current node.
+We can add 0/1 edges with 1 edge for the reverse edge and then try to find the answer for root one if the child is reachable with edge 0 then fine else we have to add the edge weight as 1.
+Then while rerooting from parent to child we can just reverse the parent child edge relation like just changing the value 1 to zero and 0 to 1 for the parent child edges.
+And then calculate the answer for the child no subtree subtraction just this edge change because rest of the strcuture remains the same.
+
+
+https://leetcode.com/problems/minimum-edge-reversals-so-every-node-is-reachable/description/
+This problem is also on CF.
+
+
+
 
 
                                                      
