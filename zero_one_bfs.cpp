@@ -231,8 +231,128 @@ public:
 
 
 
+Important
+simple bfs mein ek level aage jaa rhe hain kyun edge ka weight 1 hi hai isliye answer ho jaata hai ki queue mein daal do aur kyunki sb log order mein traverse ho rhe hain isliye keval current level+1 waalon ki hi daal rhe hain
+0/1 mein same level yaani weight 0 bhi aa rhe hain to unko aage daalna hai bs jaise queue mein peeche daalte hain isliye deque ka use krenge
+
+
+
+
 
 
 
 hamein pta hai ki ek node se jitni bhi node zerp distance pe hain unhein ek hi node maan skte hain and rest of th other also and then in the simple bfs when we go from one level to other we are just pushing the next level only and no other level and pehle deque mein to hum zero ko hi traverse kr rhe hain na to maximum ek hi level waale pehle aayenge.
     
+We can notice that the difference between the distances between the source s and two other vertices in the queue differs by at most one. Especially, we know that du] ≤ d|u] < du] + 1 for each u E Q. The reason for this is, that we only add vertices with equal distance or with distance plus one to the queue during each iteration. Assuming there exists a u in the queue with du - du > then then u must have been inserted into the queue via a different vertex t with d t ≥ du - 1 > du. However this is impossible, since Dijkstra's algorithm iterates over the vertices in increasing order.
+This means, that the order of the queue looks like this:
+
+{dist[u],dist[u],dist[u],dist[u[+1,dist[u]+1}
+
+This structure is so simple, that we don't need an actual priority queue, i.e. using a balanced binary tree would be an overkill. We can
+simply use a normal queue, and append new vertices at the beginning if the corresponding edge has weight 0, i.e. if du = du, or
+at the end if the edge has weight 1, i.e. if du] = du] + 1. This way the queue still remains sorted at all time.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//dials algorithm for k buckets where k can be less than or equal 2e5 but the suggestion is to use dijkstra
+// Time complexity is Dial = linear in graph + linear in max weight
+#include<bits/stdc++.h>
+using namespace std;
+#define int long long
+const int INF = 1e18;
+
+int32_t main(){
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n,m;
+    cin>>n>>m;
+
+    // adjacency list: {neighbor, weight}
+    vector<vector<pair<int,int>>> g(n);
+
+    int maxW = 0; // maximum edge weight
+
+    for(int i=0;i<m;i++){
+        int u,v,w;
+        cin>>u>>v>>w;
+        u--,v--;
+
+        g[u].push_back({v,w}); // directed edge u -> v
+
+        // track maximum weight for Dial's algorithm
+        maxW = max(maxW, w);
+    }
+
+    int src;
+    cin>>src;
+    src--;
+
+    // distance array
+    vector<int> dist(n, INF);
+    dist[src] = 0;
+
+    // maximum edge weight
+    int C = maxW;
+
+    // buckets: each index represents distance mod (C+1)
+    vector<queue<int>> bucket(C + 1);
+
+    // source initially at distance 0 → bucket[0]
+    bucket[0].push(src);
+
+    int curr = 0;        // current distance being processed
+    int processed = 0;  // number of nodes finalized
+
+    // process until all nodes are handled
+    while(processed < n){
+
+        // find next non-empty bucket
+        while(bucket[curr % (C+1)].empty()){
+            curr++; // move to next distance
+        }
+
+        // take node from current bucket
+        int u = bucket[curr % (C+1)].front();
+        bucket[curr % (C+1)].pop();
+
+        // skip outdated entry
+        // (means we already found a better distance for u)
+        if(dist[u] < curr) continue;
+
+        // mark this node as processed
+        processed++;
+
+        // relax all edges from u
+        for(auto [v,w]: g[u]){
+
+            // if shorter path found
+            if(dist[v] > dist[u] + w){
+
+                dist[v] = dist[u] + w;
+
+                // push into appropriate bucket
+                // modulo ensures circular behavior
+                bucket[dist[v] % (C+1)].push(v);
+            }
+        }
+    }
+
+    // print shortest distances
+    for(int i=0;i<n;i++){
+        cout<<dist[i]<<" ";
+    }
+}
