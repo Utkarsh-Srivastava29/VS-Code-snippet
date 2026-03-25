@@ -1,4 +1,6 @@
 //Minimum number of edge flips to make a node reach all the nodes in a directed acyclic graph
+//lekin har edge ek hi baar traverse hua and that is it to answer hoga O(n+m)
+agr scc hota to pehle dag mein change kro and then find the answer
 #include<bits/stdc++.h>
 using namespace std;
 #define int long long
