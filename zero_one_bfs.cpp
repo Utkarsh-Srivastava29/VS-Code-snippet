@@ -223,3 +223,16 @@ public:
         
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+hamein pta hai ki ek node se jitni bhi node zerp distance pe hain unhein ek hi node maan skte hain and rest of th other also and then in the simple bfs when we go from one level to other we are just pushing the next level only and no other level and pehle deque mein to hum zero ko hi traverse kr rhe hain na to maximum ek hi level waale pehle aayenge.
+    
