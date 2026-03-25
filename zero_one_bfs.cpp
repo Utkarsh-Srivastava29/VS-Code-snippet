@@ -73,3 +73,153 @@ int32_t main(){
     if(ans==INF) cout<<-1<<"\n";
     else cout<<ans<<"\n";
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+https://leetcode.com/problems/minimum-cost-to-make-at-least-one-valid-path-in-a-grid/description/
+
+class Solution {
+public:
+    int minCost(vector<vector<int>>& grid) {
+        int n=grid.size();
+        int m=grid[0].size();
+        vector<vector<pair<int,int>>>g(n*m);
+        for(int i=0;i<n;i++){
+            for(int j=0;j<m;j++){
+                int x=i*m+j;
+                if(grid[i][j]==1){
+                    if(j+1<m){
+                        int y=i*m+(j+1);
+                        g[x].push_back({y,0});
+                    }
+                    if(j-1>=0){
+                        int y=i*m+(j-1);
+                        g[x].push_back({y,1});
+                    }
+                    if(i+1<n){
+                         int y=(i+1)*m+(j);
+                         g[x].push_back({y,1});
+                    }
+                    if(i-1>=0){
+                        int y=(i-1)*m+j;
+                        g[x].push_back({y,1});
+                    }
+                }
+                if(grid[i][j]==2){
+                    if(j+1<m){
+                        int y=i*m+(j+1);
+                        g[x].push_back({y,1});
+                    }
+                    if(j-1>=0){
+                        int y=i*m+(j-1);
+                        g[x].push_back({y,0});
+                    }
+                    if(i+1<n){
+                         int y=(i+1)*m+(j);
+                         g[x].push_back({y,1});
+                    }
+                    if(i-1>=0){
+                        int y=(i-1)*m+j;
+                        g[x].push_back({y,1});
+                    }
+                }
+                if(grid[i][j]==3){
+                    if(j+1<m){
+                        int y=i*m+(j+1);
+                        g[x].push_back({y,1});
+                    }
+                    if(j-1>=0){
+                        int y=i*m+(j-1);
+                        g[x].push_back({y,1});
+                    }
+                    if(i+1<n){
+                         int y=(i+1)*m+(j);
+                         g[x].push_back({y,0});
+                    }
+                    if(i-1>=0){
+                        int y=(i-1)*m+j;
+                        g[x].push_back({y,1});
+                    }
+                }
+                if(grid[i][j]==4){
+                    if(j+1<m){
+                        int y=i*m+(j+1);
+                        g[x].push_back({y,1});
+                    }
+                    if(j-1>=0){
+                        int y=i*m+(j-1);
+                        g[x].push_back({y,1});
+                    }
+                    if(i+1<n){
+                         int y=(i+1)*m+(j);
+                         g[x].push_back({y,1});
+                    }
+                    if(i-1>=0){
+                        int y=(i-1)*m+j;
+                        g[x].push_back({y,0});
+                    }
+                }
+            }
+        }
+        /*
+        we use distance>dist[src] in dijkstra  continue
+        because
+
+            .....\ | /...
+                  u
+            ..../ | \....
+
+            ismein ye hai ki agr u ke ek taraf 1e4 nodes hain aur dossri taraf bhi 1e5 nodes hain then total will be 1e4*1e5 nodes which will be 1e9 in total 
+            because let us say say that the one with the highest weight is updated once then the second highest is updated and 
+
+            like src se saari nodes 1 distance pe hain and then wo saari nodes se u alag alag distance pe hai aur pehle koi bhi aa skta hai and then u apne children ko visit kr rha then we will have the problem
+          
+
+        */
+
+
+
+
+
+
+        deque<pair<int,int>>dq;
+        vector<int>dist(n*m,1e9);
+        dist[0]=0;
+        dq.push_front({0,0});
+        while(!dq.empty()){
+            auto [distance,x]=dq.front();
+            dq.pop_front();
+            if(x==(n-1)*m+m-1) break;
+            if(distance>dist[x]) continue;
+            for(auto &[child,weight]:g[x]){
+                //ek node kyi baar relation ke liye aa skta hai
+                //lekin hum kisi bhi node pe bhut logon ke trhough relac krne ki koshish kr skte hain isliye koi source agr visit ho gya hai use dubara visit krne ki zaroorat nahin hai kyunki wo alread shortest path se aa chuka hai
+                if(dist[child]>dist[x]+weight){
+                    //ye relation ek hi baar lgta hai isliye har edge ke liye ek hi baar check hoga
+                    dist[child]=dist[x]+weight;
+                    if(weight==0){
+                        dq.push_front({dist[child],child});
+                    }
+                    else{
+                        dq.push_back({dist[child],child});
+                    }
+                }
+            }
+        }
+        return dist[(n-1)*m+m-1];
+        
+    }
+};
