@@ -117,3 +117,9 @@ struct TwoSAT {
         return true;
     }
 };
+
+
+
+
+The Door Problem   --->  https://codeforces.com/contest/776/problem/D-->(x xor y) yaani ek door to open rhega ya to dono band rhega-->     (x^y-->(xVy) and (-xV-y))     and (-(x^y)--->(-xVy) and (xV-y))
++-1  --->  https://codeforces.com/problemset/problem/1971/H (3 mein se at least 2 to true hona hi chahiye mtlb 2 mein se ek to tru hona hi chahiye)
