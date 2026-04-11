@@ -1,0 +1,1064 @@
+Hamiltonian path = permutation of nodes
+🔴 Reason 2: Transition carefully dekho
+prev = mask ^ (1<<i)
+
+👉 iska matlab:
+
+mask = prev + node i
+
+👉 tum sirf un nodes ko add kar rahe ho jo pehle nahi the
+
+
+
+🔥 Check:
+if(!(mask & (1<<i))) continue;
+
+👉 ensure karta hai:
+
+i mask me hona chahiye
+
+aur implicitly:
+
+👉 i ko ek hi baar add kiya gaya hai
+
+
+
+
+
+
+🔴 Reason 3: DP structure hi restrict karta hai
+mask ek set hai → set me duplicates nahi hote → node repeat nahi ho sakta
+👉 DP build ho raha hai:
+
+small masks → bigger masks
+
+👉 har step pe:
+
+ek new node add hota hai
+
+👉 koi node remove ya repeat nahi hota
+
+
+
+
+
+
+
+🔴 First visit
+
+👉 jab pehli baar visit hua:
+
+mask me u ka bit = 1 ho gaya
+
+Example:
+
+mask = 01010  (u present)
+🔴 Second visit ke liye kya karna padega?
+
+👉 tumhe fir se u pe jaana padega
+👉 matlab transition me:
+
+dp[mask][u]
+
+use karna padega
+
+🔴 Lekin yahan dikkat kya hai?
+
+👉 DP ka rule:
+
+prev = mask ^ (1<<u)
+
+👉 iska matlab:
+
+prev = mask se u hata diya
+
+
+
+
+
+
+
+
+Checking can be easily done in O(2^n) time complexity and space complexity is O(2^n*n)
+and rest of the counting is the (2^n*n) time complexity and space complexity is O(2^n*n*n)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Q1.
+Is problem me tumhe ek graph diya gaya hai jisme n vertices hain aur har edge ka ek weight hai. Tumhe ek aisa path find karna 
+hai jo har vertex ko exactly ek baar visit kare (isko Hamiltonian walk bolte hain) aur is path ka total cost minimum ho. Simple 
+language me: “saare nodes ek baar cover karo aur cost sabse kam rakho.
+
+
+
+Mask ka concept:---
+Mask ek binary number hota hai jo batata hai kaunse vertices visit ho chuke hain. Agar n = 4 hai aur mask = 1011 hai, 
+iska matlab nodes {0,1,3} visit ho chuke hain.
+Bitmask ka use isliye karte 
+hain kyunki ye subsets ko efficiently represent karta hai aur DP me use karna easy ho jata hai.
+
+
+DP state ka meaning:---
+dp[mask][i] ka matlab hai: “mask me jo nodes hain wo sab visit ho chuke hain aur path currently node i pe end ho raha hai, aur is situation ka 
+minimum cost kya hai”. Yeh bahut important definition hai kyunki poora solution isi pe depend karta hai.
+
+
+Base case:---
+Jab mask me sirf ek hi node hai (maan lo node i), tab cost 0 hoga. Kyunki tumne sirf ek 
+node visit kiya hai, koi edge traverse nahi ki. Isliye dp[1<<i][i] = 0 hota hai.
+
+
+
+Transition (core idea):---
+Agar tum i pe end kar rahe ho aur mask given hai, iska matlab tum i se pehle kisi node j pe the. To hum check karte hain:
+dp[mask][i] = min(dp[mask without i][j] + cost(j,i))
+Yahan “mask without i” ka matlab hai ki hum i ko hata ke previous state dekh rahe hain. 
+Aur phir j → i edge ka cost add kar rahe hain. 
+Ye hi DP ka core logic hai.
+
+
+
+
+Intuition (sabse important):---
+DP ko samajhne ka best tareeka hai ye sochna ki “last node kaun hai”. Hum path ko forward nahi bana rahe, 
+balki reverse soch rahe hain: agar last node i hai, to usse pehle kaun tha? 
+Ye thinking DP ko bahut simple bana deti hai.
+
+
+Final answer kaise milta hai:---
+Jab sab nodes visit ho chuke honge (full mask = (1<<n)-1), tab path kisi bhi node pe end ho sakta hai. Isliye hum sab i ke liye check karte hain:
+answer = min(dp[full_mask][i])
+Jo minimum hoga wahi final answer hai.
+
+
+
+Path reconstruction ka idea:---
+DP me hum cost store karte hain, lekin path bhi nikalna hai. Iske liye hum parent[mask][i] store karte hain jo batata hai ki i pe aane se pehle kaun sa node j tha. 
+Fir hum last node se start karke reverse me jaate hain aur mask se nodes remove karte jaate hain.
+End me path ko reverse kar dete hain.
+
+
+
+
+Complexity:---
+Is DP me total states 2^n * n hote hain aur har state me n transitions try karte hain. 
+Isliye total time complexity O(n^2 * 2^n) hoti hai. 
+Space complexity O(n * 2^n) hoti hai.
+
+
+
+
+
+And finally code:-
+
+
+
+
+
+Question-------------------------------------------------------Search for the shortest Hamiltonian walk--------------------------------------------------
+#include<bits/stdc++.h>
+using namespace std;
+
+const int INF = 1e9; // large value to represent infinity
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    cin>>n; // number of vertices
+
+    vector<vector<int>> d(n, vector<int>(n));
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            cin>>d[i][j]; // weight from i to j
+        }
+    }
+
+    int N = 1<<n; // total number of masks = 2^n
+
+    vector<vector<int>> dp(N, vector<int>(n, INF)); 
+    // dp[mask][i] = minimum cost to visit nodes in mask and end at i
+
+    vector<vector<int>> parent(N, vector<int>(n, -1)); 
+    // parent[mask][i] = previous node before reaching i
+
+    for(int i=0;i<n;i++){
+        dp[1<<i][i] = 0; 
+        // base case: only node i is visited, cost = 0
+    }
+
+    for(int mask=0; mask<N; mask++){ // iterate over all subsets
+        for(int i=0;i<n;i++){ // try ending node i
+            if(!(mask & (1<<i))) continue; 
+            // if i is not in mask, skip
+
+            int prev = mask ^ (1<<i); 
+            // remove i from mask to get previous state
+
+            if(prev == 0) continue; 
+            // if no nodes left, skip (base case already handled)
+
+            for(int j=0;j<n;j++){ // try previous node j
+                if(prev & (1<<j)){ 
+                    // if j is in previous mask
+
+                    int val = dp[prev][j] + d[j][i]; 
+                    // cost = previous cost + edge j→i
+
+                    if(val < dp[mask][i]){ 
+                        // if better cost found
+                        dp[mask][i] = val; 
+                        parent[mask][i] = j; 
+                        // store j as parent of i
+                    }
+                }
+            }
+        }
+    }
+
+    int full = N-1; // mask with all nodes visited
+    int best = INF, last = -1;
+
+    for(int i=0;i<n;i++){ 
+        // try all possible ending nodes
+        if(dp[full][i] < best){
+            best = dp[full][i]; 
+            last = i; 
+            // store best ending node
+        }
+    }
+
+    cout<<"Minimum Cost: "<<best<<"\n";
+
+    vector<int> path;
+    int mask = full;
+    int cur = last;
+
+    while(cur != -1){ 
+        // reconstruct path using parent
+        path.push_back(cur); 
+        // add current node
+
+        int p = parent[mask][cur]; 
+        // get previous node
+
+        mask ^= (1<<cur); 
+        // remove current node from mask
+
+        cur = p; 
+        // move to previous node
+    }
+
+    reverse(path.begin(), path.end()); 
+    // reverse to get correct order
+
+    cout<<"Path: ";
+    for(auto x:path) cout<<x<<" "; 
+    // print path
+    cout<<"\n";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question------------------------------------------------------- Finding the number of Hamiltonian walks--------------------------------------------------
+Yahan DP ka meaning hai: dp[mask][i] = kitne tarikon se hum mask wale nodes visit kar sakte hain aur last node i ho. 
+Jab hum i pe end karte hain, to usse pehle kisi j se aaye honge, isliye hum dp[mask][i] += dp[mask without i][j] karte hain. 
+Difference bas itna hai ki pehle wale problem me hum min le rahe the (cost minimize), aur yahan hum sum kar rahe hain (ways count karne ke liye).
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    cin>>n; // number of vertices
+
+    vector<vector<int>> adj(n, vector<int>(n));
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            cin>>adj[i][j]; 
+            // adj[i][j] = 1 if edge exists, else 0
+        }
+    }
+
+    int N = 1<<n; // total number of subsets
+
+    vector<vector<long long>> dp(N, vector<long long>(n, 0));
+    // dp[mask][i] = number of ways to visit mask and end at i
+
+    for(int i=0;i<n;i++){
+        dp[1<<i][i] = 1; 
+        // base case: only node i is visited → 1 way
+    }
+
+    for(int mask=0; mask<N; mask++){ // iterate over all subsets
+        for(int i=0;i<n;i++){ // try ending node i
+            if(!(mask & (1<<i))) continue; 
+            // if i is not in mask, skip
+
+            int prev = mask ^ (1<<i); 
+            // remove i from mask → previous state
+
+            if(prev == 0) continue; 
+            // base case already handled
+
+            for(int j=0;j<n;j++){ // try previous node j
+                if((prev & (1<<j)) && adj[j][i]){ 
+                    // j must be in previous mask AND edge j→i must exist
+
+                    dp[mask][i] += dp[prev][j]; 
+                    // add number of ways to reach j
+                }
+            }
+        }
+    }
+
+    int full = N-1; // mask with all nodes visited
+    long long ans = 0;
+
+    for(int i=0;i<n;i++){ 
+        ans += dp[full][i]; 
+        // sum over all possible ending nodes
+    }
+
+    cout<<ans<<"\n"; // total number of Hamiltonian paths
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question-------------------------------------------------------Finding the number of simple paths--------------------------------------------------
+ek khaas baat agr vertices repeat nahin ho rhi hain then hamari edges bhi repeat nahin ho skti hain and this is very important to understand
+
+
+Questions:---
+Tumhe total number of simple paths nikalne hain graph me
+Simple path = koi vertex repeat nahi,length ≥ 1 (at least 2 nodes)
+
+
+Now the solution is as follows and that is like the following:---
+dp[mask][i]
+kitne tarikon se hum mask ke nodes visit karke i pe end kar sakte hain
+Har dp[mask][i] actually ek path represent karta hai
+
+
+
+Ab simple paths kaise milenge?:---
+Har possible path ka koi na koi:
+mask hoga
+ending node hoga
+isliye agar tum sab dp values add kar do:Σ dp[mask][i]
+
+
+Lekin ek condition hai:---
+count(mask) ≥ 2
+mask size = 1 → sirf ek node → path length = 0
+length ≥ 1 paths chahiye
+
+
+
+Sabse IMPORTANT: divide by 2:---
+answer = (1/2) * Σ dp[mask][i]
+kyunki har path 2 baar count ho raha hai
+1 → 2 → 3
+3 → 2 → 1
+These are same in the undirected graphs but in case of undirected graphs these paths are the same and simple so no need to care about the above
+final answer = total / 2
+If we have to count for path lengths zero also then we will also add n to tha answer
+answer = 1/2 * Σ dp[mask][i]  (where count(mask) ≥ 2)
+
+
+
+
+Code:-
+#include<bits/stdc++.h>
+using namespace std;
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    cin>>n;
+
+    vector<vector<int>> adj(n, vector<int>(n));
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            cin>>adj[i][j]; // 1 if edge exists
+        }
+    }
+
+    int N = 1<<n;
+
+    vector<vector<long long>> dp(N, vector<long long>(n, 0));
+    // dp[mask][i] = number of ways to visit mask and end at i
+
+    for(int i=0;i<n;i++){
+        dp[1<<i][i] = 1; // base case
+    }
+
+    for(int mask=0; mask<N; mask++){
+        for(int i=0;i<n;i++){
+            if(!(mask & (1<<i))) continue;
+
+            int prev = mask ^ (1<<i);
+            if(prev == 0) continue;
+
+            for(int j=0;j<n;j++){
+                if((prev & (1<<j)) && adj[j][i]){
+                    dp[mask][i] += dp[prev][j];
+                }
+            }
+        }
+    }
+
+    long long total = 0;
+
+    for(int mask=0; mask<N; mask++){
+        if(__builtin_popcount(mask) < 2) continue; // only length ≥ 1 paths
+
+        for(int i=0;i<n;i++){
+            if(mask & (1<<i)){
+                total += dp[mask][i];
+            }
+        }
+    }
+
+    cout << total/2 << "\n"; // divide by 2 (double counting)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question-------------------------------------------------------kya Hamiltonian walk exist karta hai ya nahi?--------------------------------------------------
+kya koi path hai jo saare nodes exactly 1 baar visit kare
+Same DP use karte hain:
+dp[mask][i]-->kya koi path exist karta hai jo mask visit kare aur i pe end kare?
+1 → exist karta hai
+0 → exist nahi karta
+
+
+
+
+Transition (sum → OR):---
+Pehle hum count kar rahe the:
+dp += ...
+Ab sirf existence check karna hai:
+dp |= ...
+
+
+
+
+
+dp[mask][i] = OR over j:
+dp[mask without i][j]
+agar koi bhi valid j mil gaya → answer true
+
+
+
+Base case:---
+dp[1<<i][i] = 1
+
+
+
+Final answer:---
+check dp[(1<<n)-1][i] for any i
+agar kisi bhi i ke liye true → Hamiltonian path exists
+
+
+
+This solution uses O(2n) of memory and O(2nn) of time.
+
+
+
+
+#include<bits/stdc++.h>
+using namespace std;
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    cin>>n;
+
+    vector<int> M(n, 0); // adjacency mask
+
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            int x;
+            cin>>x;
+            if(x) M[i] |= (1<<j); // j is neighbor of i
+        }
+    }
+
+    int N = 1<<n;
+    vector<int> dp(N, 0); // dp'[mask]
+
+    for(int i=0;i<n;i++){
+        dp[1<<i] = (1<<i); // only i is possible ending node
+    }
+
+    for(int mask=1; mask<N; mask++){
+        for(int i=0;i<n;i++){
+            if(!(mask & (1<<i))) continue;
+
+            int prev = mask ^ (1<<i);
+            if(prev == 0) continue;
+
+            if(dp[prev] & M[i]){
+                dp[mask] |= (1<<i); // i is valid ending node
+            }
+        }
+    }
+
+    if(dp[N-1] != 0) cout<<"YES\n";
+    else cout<<"NO\n";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question-------------------------------------------------------Finding the shortest Hamiltonian cycle--------------------------------------------------
+#include<bits/stdc++.h>
+using namespace std;
+
+const int INF = 1e9; // large value to represent infinity
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    cin>>n; // number of vertices
+
+    vector<vector<int>> d(n, vector<int>(n));
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            cin>>d[i][j]; 
+            // d[i][j] = cost from node i to node j
+        }
+    }
+
+    int N = 1<<n; 
+    // total number of subsets (2^n)
+
+    vector<vector<int>> dp(N, vector<int>(n, INF));
+    /*
+    dp[mask][i] = minimum cost to:
+    - start from node 0
+    - visit all nodes in 'mask'
+    - end at node i
+    */
+
+    dp[1][0] = 0; 
+    // base case:
+    // mask = 000...001 → only node 0 is visited
+    // cost = 0 (starting point)
+
+    for(int mask=1; mask<N; mask++){ 
+        // iterate over all subsets
+
+        if(!(mask & 1)) continue; 
+        // ensure node 0 is always included in mask
+        // because we always start from node 0
+
+        for(int i=0;i<n;i++){ 
+            // try ending node i
+
+            if(!(mask & (1<<i))) continue; 
+            // if i is not in mask, skip
+
+            if(i==0 && mask!=1) continue; 
+            // we cannot come back to node 0 in between
+            // node 0 should only be at the start
+
+            int prev = mask ^ (1<<i); 
+            // remove i from mask → previous state
+
+            for(int j=0;j<n;j++){ 
+                // try previous node j
+
+                if(prev & (1<<j)){ 
+                    // if j is present in previous mask
+
+                    dp[mask][i] = min(dp[mask][i],
+                                      dp[prev][j] + d[j][i]);
+                    /*
+                    transition:
+                    - we reached j earlier
+                    - now go from j → i
+                    - update minimum cost
+                    */
+                }
+            }
+        }
+    }
+
+    int full = N-1; 
+    // mask with all nodes visited (111...111)
+
+    int ans = INF;
+
+    for(int i=1;i<n;i++){ 
+        // try all possible ending nodes except 0
+
+        ans = min(ans, dp[full][i] + d[i][0]);
+        /*
+        complete the cycle:
+        - path ends at i
+        - go back to 0
+        */
+    }
+
+    cout<<ans<<"\n"; 
+    // minimum cost Hamiltonian cycle
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question-------------------------------------------------------Finding the number of Hamiltonian cycles--------------------------------------------------
+#include<bits/stdc++.h>
+using namespace std;
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    cin>>n; 
+    // number of vertices
+
+    vector<vector<int>> adj(n, vector<int>(n));
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            cin>>adj[i][j]; 
+            // adj[i][j] = 1 means edge exists from i to j
+        }
+    }
+
+    int N = 1<<n; 
+    // total number of subsets of vertices (2^n)
+
+    vector<vector<long long>> dp(N, vector<long long>(n, 0));
+    /*
+    dp[mask][i] = number of ways to:
+    - start from node 0
+    - visit exactly the set of nodes in 'mask'
+    - end at node i
+
+    NOTE:
+    - mask represents visited nodes
+    - i must be present in mask
+    */
+
+    dp[1][0] = 1; 
+    // base case:
+    // mask = 000...001 → only node 0 visited
+    // exactly 1 way: start and stay at node 0
+
+    for(int mask=1; mask<N; mask++){
+
+        if(!(mask & 1)) continue; 
+        // enforce that node 0 is always included
+        // since all paths start from node 0
+
+        for(int i=0;i<n;i++){
+
+            if(!(mask & (1<<i))) continue; 
+            // i must be part of the current subset
+
+            if(i==0 && mask!=1) continue; 
+            // do NOT return to node 0 before visiting all nodes
+            // 0 is only allowed as the starting point
+
+            int prev = mask ^ (1<<i); 
+            // remove i from mask → previous state
+            // represents path before reaching i
+
+            for(int j=0;j<n;j++){
+
+                if((prev & (1<<j)) && adj[j][i]){
+                    // j must be in prev mask
+                    // and there must be an edge from j → i
+
+                    dp[mask][i] += dp[prev][j];
+                    /*
+                    extend all valid paths ending at j
+                    by adding edge j → i
+
+                    so total ways accumulate
+                    */
+                }
+            }
+        }
+    }
+
+    int full = N-1; 
+    // mask with all nodes visited
+
+    long long ans = 0;
+
+    for(int i=1;i<n;i++){
+
+        if(adj[i][0]){ 
+            // if we can go from i → 0
+
+            ans += dp[full][i];
+            /*
+            complete the cycle:
+            0 → ... → i → 0
+
+            add all paths that end at i
+            */
+        }
+    }
+
+    cout<<ans<<"\n"; 
+    // total number of Hamiltonian cycles starting at 0
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question-------------------------------------------------------Finding the number of simple cycles--------------------------------------------------
+//ye keval unhein cycles ko count krta hai jo kahein se start first(mask) hamne ix kr diya ki kahein se start hone waali cycles ho rhi hai and then all the elements belong to that cycle and does not include repetaed or incomplete cycles
+This solution requres O(2^n*n2) of time and O(2^n*n) of memory.
+#include<bits/stdc++.h>
+using namespace std;
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    cin>>n; 
+    // number of vertices
+
+    vector<vector<int>> adj(n, vector<int>(n));
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            cin>>adj[i][j]; 
+            // adjacency matrix:
+            // adj[i][j] = 1 means edge exists from i to j
+        }
+    }
+
+    int N = 1<<n; 
+    // total number of subsets (2^n)
+
+    vector<vector<long long>> dp(N, vector<long long>(n, 0));
+    /*
+    dp[mask][i] = number of ways to:
+    - start from first(mask) (smallest node in mask)
+    - visit all nodes in mask exactly once
+    - end at node i
+    */
+
+    for(int mask=1; mask<N; mask++){
+
+        int first = __builtin_ctz(mask); 
+        // first(mask) = index of lowest set bit
+        // this node will act as fixed starting node for this mask
+
+        dp[1<<first][first] = 1;
+        // base case:
+        // only one node (first), one trivial path
+
+        for(int i=0;i<n;i++){
+
+            if(!(mask & (1<<i))) continue;
+            // i must be part of mask
+
+            if(i == first) continue;
+            // we never return to starting node in middle
+            // start node is only used at beginning
+
+            int prev = mask ^ (1<<i);
+            // remove i from mask → previous state
+
+            for(int j=0;j<n;j++){
+
+                if((prev & (1<<j)) && adj[j][i]){
+                    // j must be in previous mask
+                    // and edge j → i must exist
+
+                    dp[mask][i] += dp[prev][j];
+                    /*
+                    extend all paths that ended at j
+                    by adding edge j → i
+
+                    accumulate number of ways
+                    */
+                }
+            }
+        }
+    }
+
+    long long ans = 0;
+
+    for(int mask=1; mask<N; mask++){
+
+        int first = __builtin_ctz(mask);
+        // fixed starting node for this subset
+
+        if(__builtin_popcount(mask) < 3) continue;
+        // cycle must have at least 3 nodes
+
+        for(int i=0;i<n;i++){
+
+            if(i == first) continue;
+            // cannot end at starting node before closing cycle
+
+            if(mask & (1<<i)){
+                // i must be in mask
+
+                if(adj[i][first]){
+                   //yahan dekhein to 1-2-3-1 ek bhi ek ho skta hai and then 1-3-2-1 bhi ek ho skta hai
+
+                    // if edge exists from i → first
+                    // then we can close the cycle
+
+                    ans += dp[mask][i];
+                    /*
+                    we formed a cycle:
+                    first → ... → i → first
+                    */
+                }
+            }
+        }
+    }
+
+    cout<<ans/2<<"\n";
+    /*
+    divide by 2 because:
+    each cycle is counted twice:
+    clockwise and anticlockwise
+    like 1->2->3->1
+    like 1->3->2->1
+    */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question-------------------------------------------------------Checking for existence of Hamiltonian cycle--------------------------------------------------
+
+#include<bits/stdc++.h>
+using namespace std;
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    cin>>n; 
+    // number of vertices
+
+    vector<int> M(n, 0); 
+    // M[i] = bitmask of neighbors of node i
+    // if j is neighbor of i → j-th bit of M[i] = 1
+
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            int x;
+            cin>>x; 
+            // adjacency matrix input
+
+            if(x) M[i] |= (1<<j);
+            // if edge i → j exists, set j-th bit in M[i]
+        }
+    }
+
+    int N = 1<<n; 
+    // total number of subsets (2^n)
+
+    vector<int> dp(N, 0);
+    /*
+    dp[mask] = bitmask of nodes where:
+    - there exists a Hamiltonian path over 'mask'
+    - ending at those nodes
+
+    i.e. if dp[mask] has i-th bit ON,
+    then there is a path visiting all nodes in mask and ending at i
+    */
+
+    for(int i=0;i<n;i++){
+        dp[1<<i] = (1<<i);
+        // base case:
+        // single node mask → path exists ending at itself
+    }
+
+    for(int mask=1; mask<N; mask++){
+        // iterate over all subsets
+
+        for(int i=0;i<n;i++){
+
+            if(!(mask & (1<<i))) continue;
+            // i must be present in mask
+
+            int prev = mask ^ (1<<i);
+            // remove i from mask → previous subset
+
+            if(prev == 0) continue;
+            // skip single node case (already initialized)
+
+            if(dp[prev] & M[i]){
+                /*
+                check:
+                - dp[prev] = possible ending nodes j
+                - M[i] = neighbors of i
+
+                dp[prev] & M[i] != 0 means:
+                there exists some node j such that:
+                - j was an ending node in prev
+                - j → i edge exists
+
+                ⇒ we can extend path to i
+                */
+
+                dp[mask] |= (1<<i);
+                // mark i as a valid ending node for mask
+            }
+        }
+    }
+
+    int full = N-1;
+    // mask with all nodes visited
+
+    int start = 0;
+    // we fix starting node as 0
+
+    bool exists = false;
+
+    for(int i=0;i<n;i++){
+
+        if(i != start){
+            // avoid trivial self-loop
+
+            if((dp[full] & (1<<i)) && (M[i] & (1<<start))){
+                /*
+                check two conditions:
+
+                1. dp[full] & (1<<i)
+                   → there exists a Hamiltonian path
+                     visiting all nodes and ending at i
+
+                2. M[i] & (1<<start)
+                   → there is an edge from i → start
+
+                ⇒ path can be closed into a cycle
+                */
+
+                exists = true;
+            }
+        }
+    }
+
+    cout<<(exists ? "YES" : "NO")<<"\n";
+    // print whether Hamiltonian cycle exists
+}
